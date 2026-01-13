@@ -1,8 +1,9 @@
+// src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 import Home from "./pages/Home";
-import Resume from "./pages/Resume";
 import Applications from "./pages/Applications";
+import Resume from "./pages/Resume";
 
 export default function App() {
   return (
