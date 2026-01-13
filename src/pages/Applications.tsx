@@ -1,4 +1,3 @@
-import { KanbanBoard } from "../kanban/KanbanBoard";
 import { ui } from "../utils/ui";
 
 export default function Applications() {
@@ -19,8 +18,6 @@ export default function Applications() {
           </button>
         </div>
       </div>
-
-      <KanbanBoard />
     </div>
   );
 }
