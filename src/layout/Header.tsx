@@ -6,6 +6,8 @@ function titleFromPath(pathname: string) {
   if (pathname === "/") return "Dashboard";
   if (pathname.startsWith("/applications")) return "Applications";
   if (pathname.startsWith("/resume")) return "Resume Hub";
+  if (pathname.startsWith("/notes")) return "Notes";
+  if (pathname.startsWith("/statistics")) return "Statistics";
   return "J.J JobHunt";
 }
 

@@ -1,13 +1,10 @@
 // src/pages/Home.tsx
+import { useState } from "react";
 import { ui } from "../utils/ui";
-import { useApplications } from "../store/applicationStore"; // 이미 쓰고 있으면
+import { useApplications } from "../store/applicationStore";
+import { useTodos, useTodoActions } from "../store/todoStore";
 import type { Application } from "../types/application";
-
-function daysUntil(deadline: string) {
-  const end = new Date(deadline + "T23:59:59").getTime();
-  const diff = Math.ceil((end - Date.now()) / (1000 * 60 * 60 * 24));
-  return diff;
-}
+import { getDaysUntil } from "../utils/date";
 
 function statusLabel(status: Application["status"]) {
   if (status === "writing") return "Writing";
@@ -18,14 +15,17 @@ function statusLabel(status: Application["status"]) {
 
 export default function Home() {
   const apps = useApplications();
+  const todos = useTodos();
+  const { addTodo, toggleTodo, removeTodo } = useTodoActions();
+  const [newTodoText, setNewTodoText] = useState("");
 
   const active = apps.filter(
     (a) => a.status === "writing" || a.status === "submitted"
   ).length;
-  const dueThisWeek = apps.filter(
-    (a) =>
-      a.deadline && daysUntil(a.deadline) >= 0 && daysUntil(a.deadline) <= 7
-  ).length;
+  const dueThisWeek = apps.filter((a) => {
+    const days = getDaysUntil(a.deadline);
+    return days !== null && days >= 0 && days <= 7;
+  }).length;
   const passed = apps.filter((a) => a.status === "passed").length;
 
   const upcoming = [...apps]
@@ -35,7 +35,18 @@ export default function Home() {
     )
     .slice(0, 5);
 
-  const recent = [...apps].slice(0, 6); // 지금은 임시: 나중에 updatedAt으로 정렬 추천
+  const recent = [...apps]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 6);
+  
+  const activeTodos = todos.filter((t) => !t.completed);
+  
+  const handleAddTodo = () => {
+    if (newTodoText.trim()) {
+      addTodo(newTodoText.trim());
+      setNewTodoText("");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -82,7 +93,7 @@ export default function Home() {
                     <div className="text-sm font-semibold">
                       {a.deadline}{" "}
                       <span className="text-slate-500">
-                        (D-{Math.max(0, daysUntil(a.deadline))})
+                        (D-{Math.max(0, getDaysUntil(a.deadline) ?? 0)})
                       </span>
                     </div>
                     <div className="text-xs text-slate-500">
@@ -96,35 +107,72 @@ export default function Home() {
         </div>
 
         <div className={ui.card}>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div className={ui.cardTitle}>Today focus</div>
             <button
               className={ui.btnSecondary}
-              onClick={() => alert("TODO: add todo")}
+              onClick={() => {
+                const text = prompt("할 일을 입력하세요:");
+                if (text) addTodo(text);
+              }}
             >
               + Add
             </button>
           </div>
 
-          <div className="mt-3 space-y-3">
-            {/* 실제 To-do는 다음 단계에서 store로 분리 */}
-            {[
-              "이력서 문장 다듬기",
-              "자소서 1문단 수정",
-              "지원 기업 2곳 JD 확인",
-            ].map((t) => (
-              <label
-                key={t}
-                className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 bg-slate-50"
-              >
-                <input type="checkbox" />
-                <span className="text-sm">{t}</span>
-              </label>
-            ))}
+          <div className="space-y-2 mb-3">
+            <input
+              type="text"
+              className={ui.input}
+              placeholder="할 일을 입력하고 Enter를 누르세요"
+              value={newTodoText}
+              onChange={(e) => setNewTodoText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleAddTodo();
+              }}
+            />
           </div>
 
+          <div className="mt-3 space-y-2">
+            {activeTodos.length === 0 ? (
+              <div className={ui.muted}>할 일이 없습니다.</div>
+            ) : (
+              activeTodos.slice(0, 5).map((todo) => (
+                <label
+                  key={todo.id}
+                  className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 bg-slate-50 hover:bg-slate-100 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={todo.completed}
+                    onChange={() => toggleTodo(todo.id)}
+                    className="cursor-pointer"
+                  />
+                  <span className="text-sm flex-1">{todo.text}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeTodo(todo.id);
+                    }}
+                    className="text-xs text-rose-500 hover:text-rose-700"
+                  >
+                    삭제
+                  </button>
+                </label>
+              ))
+            )}
+          </div>
+
+          {todos.filter((t) => t.completed).length > 0 && (
+            <div className="mt-3 pt-3 border-t border-slate-200">
+              <div className="text-xs text-slate-400">
+                완료된 할 일 {todos.filter((t) => t.completed).length}개
+              </div>
+            </div>
+          )}
+
           <div className="mt-4 text-xs text-slate-500">
-            Tip: “오늘 할 일”은 실사용에 제일 강력해. 내일 바로 체감됨.
+            Tip: "오늘 할 일"은 실사용에 제일 강력해. 내일 바로 체감됨.
           </div>
         </div>
       </section>

@@ -4,12 +4,18 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 import { ApplicationProvider } from "./store/applicationStore";
+import { NoteProvider } from "./store/noteStore";
+import { TodoProvider } from "./store/todoStore";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
       <ApplicationProvider>
-        <App />
+        <NoteProvider>
+          <TodoProvider>
+            <App />
+          </TodoProvider>
+        </NoteProvider>
       </ApplicationProvider>
     </BrowserRouter>
   </React.StrictMode>

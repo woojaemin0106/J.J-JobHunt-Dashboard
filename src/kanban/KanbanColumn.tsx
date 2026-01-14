@@ -9,10 +9,12 @@ export default function KanbanColumn({
   title,
   status,
   applications,
+  onCardClick,
 }: {
   title: string;
   status: Status;
   applications: Application[];
+  onCardClick?: (application: Application) => void;
 }) {
   return (
     <div className="space-y-3">
@@ -31,7 +33,11 @@ export default function KanbanColumn({
           </div>
         ) : (
           applications.map((app) => (
-            <ApplicationCard key={app.id} application={app} />
+            <ApplicationCard
+              key={app.id}
+              application={app}
+              onClick={() => onCardClick?.(app)}
+            />
           ))
         )}
       </div>

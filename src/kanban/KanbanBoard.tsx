@@ -13,7 +13,11 @@ const COLUMNS: { key: Status; title: string }[] = [
   { key: "failed", title: "Failed" },
 ];
 
-export default function KanbanBoard() {
+export default function KanbanBoard({
+  onCardClick,
+}: {
+  onCardClick?: (application: Application) => void;
+}) {
   const applications = useApplications();
 
   const grouped = useMemo(() => {
@@ -51,6 +55,7 @@ export default function KanbanBoard() {
             title={title}
             status={key}
             applications={grouped[key]}
+            onCardClick={onCardClick}
           />
         ))}
       </div>

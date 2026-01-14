@@ -6,7 +6,7 @@ import React, {
   useReducer,
 } from "react";
 import type { Application } from "../types/application";
-import mockApplications from "../data/mockAppcations";
+import mockApplications from "../data/mockApplications";
 
 type Status = Application["status"];
 

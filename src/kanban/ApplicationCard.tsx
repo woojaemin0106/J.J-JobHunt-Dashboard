@@ -1,26 +1,22 @@
 // src/kanban/ApplicationCard.tsx
 import type { Application } from "../types/application";
 import { ui } from "../utils/ui";
-
-function dday(deadline: string) {
-  if (!deadline) return null;
-  const end = new Date(deadline + "T23:59:59").getTime();
-  const now = Date.now();
-  const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
-  if (diff < 0) return `D+${Math.abs(diff)}`;
-  if (diff === 0) return "D-DAY";
-  return `D-${diff}`;
-}
+import { calculateDDay } from "../utils/date";
 
 export default function ApplicationCard({
   application,
+  onClick,
 }: {
   application: Application;
+  onClick?: () => void;
 }) {
-  const badge = dday(application.deadline);
+  const badge = calculateDDay(application.deadline);
 
   return (
-    <div className={ui.card}>
+    <div
+      className={`${ui.card} ${onClick ? "cursor-pointer hover:shadow-md transition" : ""}`}
+      onClick={onClick}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="font-semibold">{application.companyName}</div>

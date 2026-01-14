@@ -43,6 +43,24 @@ export default function Sidebar() {
         >
           Resume Hub
         </NavLink>
+
+        <NavLink
+          to="/notes"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? linkActive : linkIdle}`
+          }
+        >
+          Notes
+        </NavLink>
+
+        <NavLink
+          to="/statistics"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? linkActive : linkIdle}`
+          }
+        >
+          Statistics
+        </NavLink>
       </nav>
     </div>
   );
