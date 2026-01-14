@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ui } from "../utils/ui";
 import { useNotes, useNoteActions } from "../store/noteStore";
 import type { Note } from "../types/note";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 export default function Notes() {
   const notes = useNotes();
@@ -12,6 +13,10 @@ export default function Notes() {
   const [newNoteTitle, setNewNoteTitle] = useState("");
   const [newNoteContent, setNewNoteContent] = useState("");
   const [showNewForm, setShowNewForm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    noteId: string | null;
+  }>({ isOpen: false, noteId: null });
 
   const handleAdd = () => {
     if (newNoteTitle.trim()) {
@@ -42,8 +47,13 @@ export default function Notes() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("메모를 삭제하시겠습니까?")) {
-      removeNote(id);
+    setDeleteConfirm({ isOpen: true, noteId: id });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirm.noteId) {
+      removeNote(deleteConfirm.noteId);
+      setDeleteConfirm({ isOpen: false, noteId: null });
     }
   };
 
@@ -172,6 +182,16 @@ export default function Notes() {
           ))
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="메모 삭제"
+        message="정말 이 메모를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        confirmText="삭제"
+        cancelText="취소"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm({ isOpen: false, noteId: null })}
+      />
     </div>
   );
 }

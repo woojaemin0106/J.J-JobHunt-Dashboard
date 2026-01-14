@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ui } from "../utils/ui";
 import { useApplications, useApplicationActions } from "../store/applicationStore";
 import type { ResumeVersion } from "../types/application";
+import { generateId } from "../utils/id";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 export default function Resume() {
   const applications = useApplications();
@@ -18,7 +20,7 @@ export default function Resume() {
     if (!selectedApplication || !newVersionName.trim()) return;
 
     const newVersion: ResumeVersion = {
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      id: generateId(),
       versionName: newVersionName,
       content: newVersionContent,
       updatedAt: new Date().toISOString(),
@@ -33,13 +35,23 @@ export default function Resume() {
     setShowNewForm(false);
   };
 
-  const handleDeleteVersion = (versionId: string) => {
-    if (!selectedApplication) return;
-    if (!confirm("이력서 버전을 삭제하시겠습니까?")) return;
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    versionId: string | null;
+  }>({ isOpen: false, versionId: null });
 
+  const handleDeleteVersion = (versionId: string) => {
+    setDeleteConfirm({ isOpen: true, versionId });
+  };
+
+  const confirmDelete = () => {
+    if (!selectedApplication || !deleteConfirm.versionId) return;
     updateApplication(selectedApplication.id, {
-      versions: selectedApplication.versions.filter((v) => v.id !== versionId),
+      versions: selectedApplication.versions.filter(
+        (v) => v.id !== deleteConfirm.versionId
+      ),
     });
+    setDeleteConfirm({ isOpen: false, versionId: null });
   };
 
   return (
@@ -190,6 +202,16 @@ export default function Resume() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="이력서 버전 삭제"
+        message="정말 이 이력서 버전을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        confirmText="삭제"
+        cancelText="취소"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm({ isOpen: false, versionId: null })}
+      />
     </div>
   );
 }

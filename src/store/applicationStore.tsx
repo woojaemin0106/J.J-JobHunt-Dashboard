@@ -1,3 +1,7 @@
+/**
+ * 지원 정보(Application) 상태 관리 Store
+ * Context API와 useReducer를 사용한 전역 상태 관리
+ */
 import React, {
   createContext,
   useContext,
@@ -7,6 +11,8 @@ import React, {
 } from "react";
 import type { Application } from "../types/application";
 import mockApplications from "../data/mockApplications";
+import { storage } from "../utils/storage";
+import { generateId } from "../utils/id";
 
 type Status = Application["status"];
 
@@ -52,22 +58,6 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-function safeParse(raw: string | null): Application[] | null {
-  if (!raw) return null;
-  try {
-    const v = JSON.parse(raw);
-    return Array.isArray(v) ? (v as Application[]) : null;
-  } catch {
-    return null;
-  }
-}
-
-function makeId() {
-  const c = (globalThis as any).crypto;
-  if (c?.randomUUID) return c.randomUUID();
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
 type Actions = {
   addApplication: (input: Omit<Application, "id">) => void;
   updateApplication: (id: string, patch: Partial<Application>) => void;
@@ -86,18 +76,18 @@ export function ApplicationProvider({
   const [state, dispatch] = useReducer(reducer, { applications: [] });
 
   useEffect(() => {
-    const fromStorage = safeParse(localStorage.getItem(STORAGE_KEY));
+    const fromStorage = storage.get<Application[]>(STORAGE_KEY);
     dispatch({ type: "INIT", payload: fromStorage ?? mockApplications });
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.applications));
+    storage.set(STORAGE_KEY, state.applications);
   }, [state.applications]);
 
   const actions = useMemo<Actions>(() => {
     return {
       addApplication(input) {
-        dispatch({ type: "ADD", payload: { ...input, id: makeId() } });
+        dispatch({ type: "ADD", payload: { ...input, id: generateId() } });
       },
       updateApplication(id, patch) {
         dispatch({ type: "UPDATE", payload: { id, patch } });
