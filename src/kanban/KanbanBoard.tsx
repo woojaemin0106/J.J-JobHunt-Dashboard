@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import KanbanColumn from "./KanbanColumn";
 import type { Application } from "../types/application";
-import mockApplications from "../data/mockAppcations"; // 아직 store 없으면 mock 사용
+import { useApplications } from "../store/applicationStore";
 
 type Status = Application["status"];
 
@@ -14,7 +14,7 @@ const COLUMNS: { key: Status; title: string }[] = [
 ];
 
 export default function KanbanBoard() {
-  const applications = mockApplications as Application[];
+  const applications = useApplications();
 
   const grouped = useMemo(() => {
     const map: Record<Status, Application[]> = {
