@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import type { Note } from "../types/note";
 import { storage } from "../utils/storage";
+import { generateId } from "../utils/id";
 
 const STORAGE_KEY = "jj_jobhunt_notes_v1";
 
@@ -41,12 +42,6 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-function makeId() {
-  const c = (globalThis as any).crypto;
-  if (c?.randomUUID) return c.randomUUID();
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
 type Actions = {
   addNote: (input: Omit<Note, "id" | "createdAt" | "updatedAt">) => void;
   updateNote: (id: string, patch: Partial<Note>) => void;
@@ -74,7 +69,7 @@ export function NoteProvider({ children }: { children: React.ReactNode }) {
         const now = new Date().toISOString();
         dispatch({
           type: "ADD",
-          payload: { ...input, id: makeId(), createdAt: now, updatedAt: now },
+          payload: { ...input, id: generateId(), createdAt: now, updatedAt: now },
         });
       },
       updateNote(id, patch) {
