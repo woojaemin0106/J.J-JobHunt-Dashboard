@@ -11,8 +11,8 @@ export default function Sidebar() {
   return (
     <div className="p-4">
       <div className="mb-6">
-        <div className="text-xl font-bold">J.J Dashboard</div>
-        <div className={ui.muted}>Job hunt in one place</div>
+        <div className="text-xl font-bold">JOBFLUX</div>
+        <div className={ui.muted}>한 눈에서 보는 취업 준비</div>
       </div>
 
       <nav className="space-y-1">
@@ -23,7 +23,7 @@ export default function Sidebar() {
             `${linkBase} ${isActive ? linkActive : linkIdle}`
           }
         >
-          Home
+          홈
         </NavLink>
 
         <NavLink
@@ -32,7 +32,7 @@ export default function Sidebar() {
             `${linkBase} ${isActive ? linkActive : linkIdle}`
           }
         >
-          Applications
+          지원 현황
         </NavLink>
 
         <NavLink
@@ -41,7 +41,7 @@ export default function Sidebar() {
             `${linkBase} ${isActive ? linkActive : linkIdle}`
           }
         >
-          Resume Hub
+          이력서 관리
         </NavLink>
 
         <NavLink
@@ -50,7 +50,7 @@ export default function Sidebar() {
             `${linkBase} ${isActive ? linkActive : linkIdle}`
           }
         >
-          Notes
+          메모장
         </NavLink>
 
         <NavLink
@@ -59,7 +59,7 @@ export default function Sidebar() {
             `${linkBase} ${isActive ? linkActive : linkIdle}`
           }
         >
-          Statistics
+          취업 통계
         </NavLink>
       </nav>
     </div>

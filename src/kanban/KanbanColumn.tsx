@@ -29,7 +29,7 @@ export default function KanbanColumn({
       <div className="space-y-3">
         {applications.length === 0 ? (
           <div className={ui.card}>
-            <div className={ui.muted}>No items yet</div>
+            <div className={ui.muted}>등록된 항목이 없습니다</div>
           </div>
         ) : (
           applications.map((app) => (

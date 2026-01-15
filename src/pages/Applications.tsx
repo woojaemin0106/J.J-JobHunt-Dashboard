@@ -29,11 +29,11 @@ export default function Applications() {
       <div className={ui.card}>
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className={ui.cardTitle}>Pipeline</div>
+            <div className={ui.cardTitle}>지원 현황</div>
             <div className={ui.muted}>지원 현황을 단계별로 관리</div>
           </div>
           <button className={ui.btnPrimary} onClick={handleAddNew}>
-            + New Application
+            + 새 지원 추가
           </button>
         </div>
       </div>

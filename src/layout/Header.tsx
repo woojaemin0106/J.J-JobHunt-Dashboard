@@ -3,11 +3,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ui } from "../utils/ui";
 
 function titleFromPath(pathname: string) {
-  if (pathname === "/") return "Dashboard";
-  if (pathname.startsWith("/applications")) return "Applications";
-  if (pathname.startsWith("/resume")) return "Resume Hub";
-  if (pathname.startsWith("/notes")) return "Notes";
-  if (pathname.startsWith("/statistics")) return "Statistics";
+  if (pathname === "/") return "홈";
+  if (pathname.startsWith("/applications")) return "지원 현황";
+  if (pathname.startsWith("/resume")) return "이력서 관리";
+  if (pathname.startsWith("/notes")) return "메모장";
+  if (pathname.startsWith("/statistics")) return "취업 통계";
   return "J.J JobHunt";
 }
 
@@ -20,13 +20,12 @@ export default function Header() {
     <>
       <div className="min-w-[220px]">
         <div className="text-lg font-semibold">{title}</div>
-        <div className={ui.muted}>Track, apply, iterate.</div>
       </div>
 
       <div className="flex items-center gap-2 w-full max-w-xl">
         <input
           className={ui.input}
-          placeholder="Search company, role..."
+          placeholder="회사·직무 검색…"
           onKeyDown={(e) => {
             if (e.key === "Enter") navigate("/applications");
           }}
@@ -38,13 +37,13 @@ export default function Header() {
           className={ui.btnSecondary}
           onClick={() => navigate("/applications")}
         >
-          Pipeline
+          지원 현황
         </button>
         <button
           className={ui.btnPrimary}
           onClick={() => alert("TODO: Open New Application modal")}
         >
-          + New
+          + 추가하기
         </button>
       </div>
     </>

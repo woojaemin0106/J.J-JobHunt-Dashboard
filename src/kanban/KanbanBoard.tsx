@@ -7,10 +7,10 @@ import { useApplications } from "../store/applicationStore";
 type Status = Application["status"];
 
 const COLUMNS: { key: Status; title: string }[] = [
-  { key: "writing", title: "Writing" },
-  { key: "submitted", title: "Submitted" },
-  { key: "passed", title: "Passed" },
-  { key: "failed", title: "Failed" },
+  { key: "writing", title: "작성 중" },
+  { key: "submitted", title: "지원 완료" },
+  { key: "passed", title: "합격" },
+  { key: "failed", title: "불합격" },
 ];
 
 export default function KanbanBoard({

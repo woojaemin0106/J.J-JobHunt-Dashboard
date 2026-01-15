@@ -52,33 +52,33 @@ export default function Home() {
     <div className="space-y-6">
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className={ui.card}>
-          <div className={ui.muted}>Active</div>
+          <div className={ui.muted}>지원 현황</div>
           <div className="text-3xl font-bold mt-1">{active}</div>
-          <div className="mt-2 text-xs text-slate-500">writing + submitted</div>
+          <div className="mt-2 text-xs text-slate-500">작성 중 + 제출되었습니다</div>
         </div>
         <div className={ui.card}>
-          <div className={ui.muted}>Due in 7 days</div>
+          <div className={ui.muted}>지원 마감</div>
           <div className="text-3xl font-bold mt-1">{dueThisWeek}</div>
           <div className="mt-2 text-xs text-slate-500">
-            deadlines approaching
+            마감일이 다가오고 있습니다
           </div>
         </div>
         <div className={ui.card}>
-          <div className={ui.muted}>Passed</div>
+          <div className={ui.muted}>합격</div>
           <div className="text-3xl font-bold mt-1">{passed}</div>
-          <div className="mt-2 text-xs text-slate-500">positive outcomes</div>
+          <div className="mt-2 text-xs text-slate-500">합격 되었습니다</div>
         </div>
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className={ui.card}>
           <div className="flex items-center justify-between">
-            <div className={ui.cardTitle}>Upcoming deadlines</div>
+            <div className={ui.cardTitle}>다가오는 마감일</div>
             <div className={ui.muted}>Top 5</div>
           </div>
           <div className="mt-3 divide-y divide-slate-100">
             {upcoming.length === 0 ? (
-              <div className={ui.muted}>No deadlines yet.</div>
+              <div className={ui.muted}>아직 마감일은 정해지지 않았습니다</div>
             ) : (
               upcoming.map((a) => (
                 <div
@@ -108,7 +108,7 @@ export default function Home() {
 
         <div className={ui.card}>
           <div className="flex items-center justify-between mb-3">
-            <div className={ui.cardTitle}>Today focus</div>
+            <div className={ui.cardTitle}>오늘의 할 일</div>
             <button
               className={ui.btnSecondary}
               onClick={() => {
@@ -116,7 +116,7 @@ export default function Home() {
                 if (text) addTodo(text);
               }}
             >
-              + Add
+              + 추가
             </button>
           </div>
 
@@ -179,12 +179,12 @@ export default function Home() {
 
       <section className={ui.card}>
         <div className="flex items-center justify-between">
-          <div className={ui.cardTitle}>Recent</div>
-          <div className={ui.muted}>Last updates</div>
+          <div className={ui.cardTitle}>최근 활동</div>
+          <div className={ui.muted}>마지막 업데이트</div>
         </div>
         <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
           {recent.length === 0 ? (
-            <div className={ui.muted}>No activity.</div>
+            <div className={ui.muted}>활동 없음</div>
           ) : (
             recent.map((a) => (
               <div
