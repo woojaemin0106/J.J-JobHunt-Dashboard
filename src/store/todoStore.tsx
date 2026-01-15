@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import type { Todo } from "../types/todo";
 import { storage } from "../utils/storage";
+import { generateId } from "../utils/id";
 
 const STORAGE_KEY = "jj_jobhunt_todos_v1";
 
@@ -54,12 +55,6 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-function makeId() {
-  const c = (globalThis as any).crypto;
-  if (c?.randomUUID) return c.randomUUID();
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
 type Actions = {
   addTodo: (text: string) => void;
   updateTodo: (id: string, patch: Partial<Todo>) => void;
@@ -88,7 +83,7 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
         dispatch({
           type: "ADD",
           payload: {
-            id: makeId(),
+            id: generateId(),
             text,
             completed: false,
             createdAt: new Date().toISOString(),
