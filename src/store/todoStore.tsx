@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
 } from "react";
 import type { Todo } from "../types/todo";
 import { storage } from "../utils/storage";
@@ -66,14 +67,26 @@ const StateCtx = createContext<State | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
 export function TodoProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, { todos: [] });
+  // 초기 상태를 localStorage에서 직접 가져오기
+  const [state, dispatch] = useReducer(
+    reducer,
+    { todos: [] },
+    () => {
+      const fromStorage = storage.get<Todo[]>(STORAGE_KEY);
+      return { todos: fromStorage ?? [] };
+    }
+  );
+
+  // 초기 로드 완료 여부를 추적하는 ref
+  const isInitialized = useRef(false);
 
   useEffect(() => {
-    const fromStorage = storage.get<Todo[]>(STORAGE_KEY);
-    dispatch({ type: "INIT", payload: fromStorage ?? [] });
-  }, []);
-
-  useEffect(() => {
+    // 첫 마운트 시에는 localStorage에서 이미 불러왔으므로 저장하지 않음
+    if (!isInitialized.current) {
+      isInitialized.current = true;
+      return;
+    }
+    // 이후 상태 변경 시에만 localStorage에 저장
     storage.set(STORAGE_KEY, state.todos);
   }, [state.todos]);
 

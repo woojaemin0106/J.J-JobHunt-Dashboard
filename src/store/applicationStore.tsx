@@ -8,6 +8,7 @@ import React, {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
 } from "react";
 import type { Application } from "../types/application";
 import mockApplications from "../data/mockApplications";
@@ -73,14 +74,26 @@ export function ApplicationProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [state, dispatch] = useReducer(reducer, { applications: [] });
+  // 초기 상태를 localStorage에서 직접 가져오거나 mock 데이터 사용
+  const [state, dispatch] = useReducer(
+    reducer,
+    { applications: [] },
+    () => {
+      const fromStorage = storage.get<Application[]>(STORAGE_KEY);
+      return { applications: fromStorage ?? mockApplications };
+    }
+  );
+
+  // 초기 로드 완료 여부를 추적하는 ref
+  const isInitialized = useRef(false);
 
   useEffect(() => {
-    const fromStorage = storage.get<Application[]>(STORAGE_KEY);
-    dispatch({ type: "INIT", payload: fromStorage ?? mockApplications });
-  }, []);
-
-  useEffect(() => {
+    // 첫 마운트 시에는 localStorage에서 이미 불러왔으므로 저장하지 않음
+    if (!isInitialized.current) {
+      isInitialized.current = true;
+      return;
+    }
+    // 이후 상태 변경 시에만 localStorage에 저장
     storage.set(STORAGE_KEY, state.applications);
   }, [state.applications]);
 

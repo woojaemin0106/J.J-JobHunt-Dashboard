@@ -8,7 +8,7 @@ export const ui = {
   sidebar: "w-64 border-r border-slate-200/60 bg-white/80 backdrop-blur-sm",
   main: "flex-1",
   header:
-    "h-16 border-b border-slate-200/60 bg-white/80 backdrop-blur-sm flex items-center justify-between px-6",
+    "h-16 border-b border-slate-200/60 bg-white/80 backdrop-blur-sm flex items-center justify-between px-3 sm:px-6 gap-2 overflow-hidden",
   content: "p-6 max-w-6xl mx-auto w-full",
 
   card: "rounded-2xl border border-slate-200/60 bg-white/90 backdrop-blur-sm p-4 shadow-sm hover:shadow-md transition-shadow duration-200",
