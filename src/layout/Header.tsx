@@ -1,6 +1,7 @@
 // src/layout/Header.tsx
 import { useLocation, useNavigate } from "react-router-dom";
 import { ui } from "../utils/ui";
+import { useAuth, useAuthActions } from "../store/authStore";
 
 function titleFromPath(pathname: string) {
   if (pathname === "/") return "홈";
@@ -15,6 +16,8 @@ export default function Header() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const title = titleFromPath(pathname);
+  const { isAuthenticated, user } = useAuth();
+  const { logout } = useAuthActions();
 
   return (
     <>
@@ -41,14 +44,28 @@ export default function Header() {
           <span className="hidden sm:inline">지원 현황</span>
           <span className="sm:hidden">지원</span>
         </button>
-        <button
-          className={`${ui.btnPrimary} px-2 sm:px-4 text-xs sm:text-sm`}
-          onClick={() => alert("TODO: Open New Application modal")}
-          title="추가하기"
-        >
-          <span className="hidden sm:inline">+ 추가하기</span>
-          <span className="sm:hidden">+</span>
-        </button>
+        {isAuthenticated ? (
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline text-sm text-slate-600">
+              {user?.name || user?.email}
+            </span>
+            <button
+              className={`${ui.btnSecondary} px-2 sm:px-4 text-xs sm:text-sm`}
+              onClick={logout}
+              title="로그아웃"
+            >
+              로그아웃
+            </button>
+          </div>
+        ) : (
+          <button
+            className={`${ui.btnPrimary} px-2 sm:px-4 text-xs sm:text-sm`}
+            onClick={() => navigate("/login")}
+            title="로그인"
+          >
+            로그인
+          </button>
+        )}
       </div>
     </>
   );
