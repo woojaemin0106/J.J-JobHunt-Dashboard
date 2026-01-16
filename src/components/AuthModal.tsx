@@ -1,5 +1,5 @@
 // src/components/AuthModal.tsx
-import { useState, FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useAuthActions } from "../store/authStore";
 
 interface AuthModalProps {

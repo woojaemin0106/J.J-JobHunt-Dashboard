@@ -1,5 +1,5 @@
 // src/pages/Signup.tsx
-import { useState, FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthActions } from "../store/authStore";
 import { ui } from "../utils/ui";
