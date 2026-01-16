@@ -73,7 +73,7 @@ export default function Signup() {
                 <input
                   type="password"
                   required
-                  placeholder="비밀번호"
+                  placeholder="비밀번호 (최소 6자 이상)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   minLength={4}
@@ -97,9 +97,7 @@ export default function Signup() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-slate-500 text-sm">
-                이미 계정이 있으신가요?
-              </p>
+              <p className="text-slate-500 text-sm">이미 계정이 있으신가요?</p>
               <Link
                 to="/login"
                 className="text-indigo-600 hover:text-indigo-700 hover:underline mt-2 inline-block text-sm font-medium"
