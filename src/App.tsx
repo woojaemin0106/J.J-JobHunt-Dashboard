@@ -7,9 +7,11 @@ import Notes from "./pages/Notes";
 import Statistics from "./pages/Statistics";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import { AuthProvider } from "./store/authStore";
 
 export default function App() {
   return (
+    <AuthProvider>
     <Routes>
       {/* 로그인/회원가입 페이지는 AppLayout 없이 */}
       <Route path="/login" element={<Login />} />
@@ -32,5 +34,6 @@ export default function App() {
         }
       />
     </Routes>
+    </AuthProvider>
   );
 }

@@ -3,35 +3,27 @@ import React, {
   useContext,
   useEffect,
   useReducer,
-  useRef,
 } from "react";
+import { supabase } from '../supabase/supabase';
 import type { User, AuthState } from "../types/auth";
-import { storage } from "../utils/storage";
-import { generateId } from "../utils/id";
-
-const STORAGE_KEY = "jj_jobhunt_auth_v1";
 
 type Action =
-  | { type: "LOGIN"; payload: User }
-  | { type: "LOGOUT" }
-  | { type: "INIT"; payload: User | null };
+  | { type: "SET_USER"; payload: User | null }
+  | { type: "LOADING_END" };
 
-function reducer(state: AuthState, action: Action): AuthState {
+function reducer(state: AuthState & { isLoading: boolean }, action: Action): any {
   switch (action.type) {
-    case "INIT":
+    case "SET_USER":
       return {
+        ...state,
         user: action.payload,
         isAuthenticated: action.payload !== null,
+        isLoading: false,
       };
-    case "LOGIN":
+    case "LOADING_END":
       return {
-        user: action.payload,
-        isAuthenticated: true,
-      };
-    case "LOGOUT":
-      return {
-        user: null,
-        isAuthenticated: false,
+        ...state,
+        isLoading: false,
       };
     default:
       return state;
@@ -41,79 +33,85 @@ function reducer(state: AuthState, action: Action): AuthState {
 type Actions = {
   login: (email: string, password: string) => Promise<boolean>;
   signup: (email: string, password: string, name?: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
-const StateCtx = createContext<AuthState | null>(null);
+const StateCtx = createContext<AuthState & { isLoading: boolean } | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(
-    reducer,
-    { user: null, isAuthenticated: false },
-    () => {
-      const fromStorage = storage.get<User>(STORAGE_KEY);
-      return {
-        user: fromStorage,
-        isAuthenticated: fromStorage !== null,
-      };
-    }
-  );
-
-  const isInitialized = useRef(false);
+  const [state, dispatch] = useReducer(reducer, {
+    user: null,
+    isAuthenticated: false,
+    isLoading: true, // 초기 로딩 상태 추가
+  });
 
   useEffect(() => {
-    if (!isInitialized.current) {
-      isInitialized.current = true;
-      return;
-    }
-    if (state.user) {
-      storage.set(STORAGE_KEY, state.user);
-    } else {
-      storage.remove(STORAGE_KEY);
-    }
-  }, [state.user]);
+    // 1. 초기 접속 시 현재 세션 확인
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const user: User = {
+          id: session.user.id,
+          email: session.user.email || "",
+          name: session.user.user_metadata?.full_name || "",
+        };
+        dispatch({ type: "SET_USER", payload: user });
+      } else {
+        dispatch({ type: "LOADING_END" });
+      }
+    });
+
+    // 2. 인증 상태 변경 감지 (로그인, 로그아웃 등 실시간 대응)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const user: User = {
+          id: session.user.id,
+          email: session.user.email || "",
+          name: session.user.user_metadata?.full_name || "",
+        };
+        dispatch({ type: "SET_USER", payload: user });
+      } else {
+        dispatch({ type: "SET_USER", payload: null });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const actions: Actions = {
-    async login(email: string, password: string) {
-      // 간단한 로그인 로직 (실제로는 API 호출)
-      // 여기서는 localStorage에서 사용자 정보를 확인
-      const users = storage.get<Array<{ email: string; password: string; user: User }>>("jj_jobhunt_users_v1") || [];
-      const found = users.find(u => u.email === email && u.password === password);
-      
-      if (found) {
-        dispatch({ type: "LOGIN", payload: found.user });
-        return true;
-      }
-      return false;
-    },
-    async signup(email: string, password: string, name?: string) {
-      // 간단한 회원가입 로직
-      const users = storage.get<Array<{ email: string; password: string; user: User }>>("jj_jobhunt_users_v1") || [];
-      
-      // 중복 체크
-      if (users.find(u => u.email === email)) {
-        return false;
-      }
-
-      const newUser: User = {
-        id: generateId(),
+    async login(email, password) {
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        name: name || email.split("@")[0],
-      };
-
-      users.push({
-        email,
-        password, // 실제로는 해시화해야 함
-        user: newUser,
+        password,
       });
 
-      storage.set("jj_jobhunt_users_v1", users);
-      dispatch({ type: "LOGIN", payload: newUser });
-      return true;
+      if (error) {
+        console.error("Login Error:", error.message);
+        return false;
+      }
+      return !!data.user;
     },
-    logout() {
-      dispatch({ type: "LOGOUT" });
+
+    async signup(email, password, name) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      });
+
+      if (error) {
+        console.error("Signup Error:", error.message);
+        return false;
+      }
+      return !!data.user;
+    },
+
+    async logout() {
+      await supabase.auth.signOut();
     },
   };
 
