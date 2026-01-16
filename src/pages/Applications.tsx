@@ -1,13 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ui } from "../utils/ui";
 import KanbanBoard from "../kanban/KanbanBoard";
 import ApplicationModal from "../kanban/ApplicationModal";
 import type { Application } from "../types/application";
 
 export default function Applications() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] =
     useState<Application | null>(null);
+
+  // URL query parameter를 확인하여 모달 열기
+  useEffect(() => {
+    if (searchParams.get("new") === "true") {
+      setIsModalOpen(true);
+      setSelectedApplication(null);
+      // URL에서 query parameter 제거
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleAddNew = () => {
     setSelectedApplication(null);
