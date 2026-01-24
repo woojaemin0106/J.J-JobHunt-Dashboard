@@ -1,5 +1,5 @@
 // src/kanban/KanbanBoard.tsx
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import KanbanColumn from "./KanbanColumn";
 import type { Application } from "../types/application";
 import { useApplications } from "../store/applicationStore";
@@ -20,6 +20,7 @@ export default function KanbanBoard({
 }) {
   const applications = useApplications();
 
+  // useMemo로 그룹핑 결과를 캐싱하여 applications가 변경될 때만 재계산
   const grouped = useMemo(() => {
     const map: Record<Status, Application[]> = {
       writing: [],
@@ -46,6 +47,14 @@ export default function KanbanBoard({
     return map;
   }, [applications]);
 
+  // useCallback으로 onCardClick 핸들러를 안정화하여 KanbanColumn 리렌더링 방지
+  const handleCardClick = useCallback(
+    (application: Application) => {
+      onCardClick?.(application);
+    },
+    [onCardClick]
+  );
+
   return (
     <section className="w-full">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -55,7 +64,7 @@ export default function KanbanBoard({
             title={title}
             status={key}
             applications={grouped[key]}
-            onCardClick={onCardClick}
+            onCardClick={handleCardClick}
           />
         ))}
       </div>
