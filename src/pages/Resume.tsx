@@ -1,10 +1,75 @@
 // src/pages/Resume.tsx
-import { useState } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import { ui } from "../utils/ui";
 import { useApplications, useApplicationActions } from "../store/applicationStore";
-import type { ResumeVersion } from "../types/application";
+import type { Application, ResumeVersion } from "../types/application";
 import { generateId } from "../utils/id";
 import ConfirmDialog from "../components/ConfirmDialog";
+
+/**
+ * 지원 목록 아이템 컴포넌트
+ * React.memo로 감싸서 해당 application이 변경될 때만 리렌더링됩니다.
+ */
+const ApplicationListItem = memo(function ApplicationListItem({
+  app,
+  isSelected,
+  onSelect,
+}: {
+  app: Application;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <button
+      onClick={() => onSelect(app.id)}
+      className={`w-full text-left p-3 rounded-xl border transition ${
+        isSelected
+          ? "border-indigo-500 bg-indigo-50"
+          : "border-slate-200 hover:bg-slate-50"
+      }`}
+    >
+      <div className="font-medium">{app.companyName}</div>
+      <div className="text-sm text-slate-500">{app.jobTitle}</div>
+      <div className="text-xs text-slate-400 mt-1">
+        버전 {app.versions?.length || 0}개
+      </div>
+    </button>
+  );
+});
+
+/**
+ * 이력서 버전 카드 컴포넌트
+ * React.memo로 감싸서 해당 version이 변경될 때만 리렌더링됩니다.
+ */
+const ResumeVersionCard = memo(function ResumeVersionCard({
+  version,
+  onDelete,
+}: {
+  version: ResumeVersion;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <div className={ui.card}>
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <div className="font-semibold">{version.versionName}</div>
+          <div className="text-xs text-slate-400 mt-1">
+            {new Date(version.updatedAt).toLocaleDateString("ko-KR")}
+          </div>
+        </div>
+        <button
+          className={ui.btnDanger}
+          onClick={() => onDelete(version.id)}
+        >
+          삭제
+        </button>
+      </div>
+      <div className="text-sm text-slate-600 whitespace-pre-wrap border-t border-slate-100 pt-3">
+        {version.content || <span className={ui.muted}>내용 없음</span>}
+      </div>
+    </div>
+  );
+});
 
 export default function Resume() {
   const applications = useApplications();
@@ -13,10 +78,23 @@ export default function Resume() {
   const [newVersionName, setNewVersionName] = useState("");
   const [newVersionContent, setNewVersionContent] = useState("");
   const [showNewForm, setShowNewForm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    versionId: string | null;
+  }>({ isOpen: false, versionId: null });
 
-  const selectedApplication = applications.find((a) => a.id === selectedApp);
+  // useMemo로 selectedApplication 탐색을 캐싱
+  const selectedApplication = useMemo(() => {
+    return applications.find((a) => a.id === selectedApp);
+  }, [applications, selectedApp]);
 
-  const handleAddVersion = () => {
+  // useCallback으로 핸들러 함수들을 안정화
+  const handleSelectApp = useCallback((id: string) => {
+    setSelectedApp(id);
+    setShowNewForm(false);
+  }, []);
+
+  const handleAddVersion = useCallback(() => {
     if (!selectedApplication || !newVersionName.trim()) return;
 
     const newVersion: ResumeVersion = {
@@ -33,18 +111,13 @@ export default function Resume() {
     setNewVersionName("");
     setNewVersionContent("");
     setShowNewForm(false);
-  };
+  }, [selectedApplication, newVersionName, newVersionContent, updateApplication]);
 
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    isOpen: boolean;
-    versionId: string | null;
-  }>({ isOpen: false, versionId: null });
-
-  const handleDeleteVersion = (versionId: string) => {
+  const handleDeleteVersion = useCallback((versionId: string) => {
     setDeleteConfirm({ isOpen: true, versionId });
-  };
+  }, []);
 
-  const confirmDelete = () => {
+  const confirmDelete = useCallback(() => {
     if (!selectedApplication || !deleteConfirm.versionId) return;
     updateApplication(selectedApplication.id, {
       versions: selectedApplication.versions.filter(
@@ -52,7 +125,7 @@ export default function Resume() {
       ),
     });
     setDeleteConfirm({ isOpen: false, versionId: null });
-  };
+  }, [selectedApplication, deleteConfirm.versionId, updateApplication]);
 
   return (
     <div className="space-y-4">
@@ -72,24 +145,12 @@ export default function Resume() {
                 <div className={ui.muted}>지원 내역이 없습니다.</div>
               ) : (
                 applications.map((app) => (
-                  <button
+                  <ApplicationListItem
                     key={app.id}
-                    onClick={() => {
-                      setSelectedApp(app.id);
-                      setShowNewForm(false);
-                    }}
-                    className={`w-full text-left p-3 rounded-xl border transition ${
-                      selectedApp === app.id
-                        ? "border-indigo-500 bg-indigo-50"
-                        : "border-slate-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    <div className="font-medium">{app.companyName}</div>
-                    <div className="text-sm text-slate-500">{app.jobTitle}</div>
-                    <div className="text-xs text-slate-400 mt-1">
-                      버전 {app.versions?.length || 0}개
-                    </div>
-                  </button>
+                    app={app}
+                    isSelected={selectedApp === app.id}
+                    onSelect={handleSelectApp}
+                  />
                 ))
               )}
             </div>
@@ -164,31 +225,11 @@ export default function Resume() {
                   </div>
                 ) : (
                   selectedApplication.versions?.map((version) => (
-                    <div key={version.id} className={ui.card}>
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="font-semibold">
-                            {version.versionName}
-                          </div>
-                          <div className="text-xs text-slate-400 mt-1">
-                            {new Date(version.updatedAt).toLocaleDateString(
-                              "ko-KR"
-                            )}
-                          </div>
-                        </div>
-                        <button
-                          className={ui.btnDanger}
-                          onClick={() => handleDeleteVersion(version.id)}
-                        >
-                          삭제
-                        </button>
-                      </div>
-                      <div className="text-sm text-slate-600 whitespace-pre-wrap border-t border-slate-100 pt-3">
-                        {version.content || (
-                          <span className={ui.muted}>내용 없음</span>
-                        )}
-                      </div>
-                    </div>
+                    <ResumeVersionCard
+                      key={version.id}
+                      version={version}
+                      onDelete={handleDeleteVersion}
+                    />
                   ))
                 )}
               </div>

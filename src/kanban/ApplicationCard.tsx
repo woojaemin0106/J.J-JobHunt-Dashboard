@@ -1,9 +1,16 @@
 // src/kanban/ApplicationCard.tsx
+import { memo } from "react";
 import type { Application } from "../types/application";
 import { ui } from "../utils/ui";
 import { calculateDDay } from "../utils/date";
 
-export default function ApplicationCard({
+/**
+ * 지원 카드 컴포넌트
+ * React.memo로 감싸서 props가 변경되지 않으면 리렌더링을 방지합니다.
+ * - application 객체나 onClick 함수가 동일하면 리렌더링 스킵
+ * - 다른 카드가 수정되어도 이 카드는 리렌더링되지 않음
+ */
+const ApplicationCard = memo(function ApplicationCard({
   application,
   onClick,
 }: {
@@ -37,4 +44,6 @@ export default function ApplicationCard({
       </div>
     </div>
   );
-}
+});
+
+export default ApplicationCard;

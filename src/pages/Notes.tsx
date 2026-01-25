@@ -1,9 +1,94 @@
 // src/pages/Notes.tsx
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { ui } from "../utils/ui";
 import { useNotes, useNoteActions } from "../store/noteStore";
 import type { Note } from "../types/note";
 import ConfirmDialog from "../components/ConfirmDialog";
+
+/**
+ * 메모 카드 컴포넌트
+ * React.memo로 감싸서 해당 note가 변경될 때만 리렌더링됩니다.
+ */
+const NoteCard = memo(function NoteCard({
+  note,
+  isEditing,
+  editingNote,
+  onEdit,
+  onDelete,
+  onSave,
+  onCancel,
+  onEditingNoteChange,
+}: {
+  note: Note;
+  isEditing: boolean;
+  editingNote: Note | null;
+  onEdit: (note: Note) => void;
+  onDelete: (id: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  onEditingNoteChange: (note: Note) => void;
+}) {
+  if (isEditing && editingNote) {
+    return (
+      <div className={ui.card}>
+        <div className="space-y-3">
+          <input
+            type="text"
+            className={ui.input}
+            value={editingNote.title}
+            onChange={(e) =>
+              onEditingNoteChange({ ...editingNote, title: e.target.value })
+            }
+          />
+          <textarea
+            className={ui.input}
+            rows={5}
+            value={editingNote.content}
+            onChange={(e) =>
+              onEditingNoteChange({ ...editingNote, content: e.target.value })
+            }
+          />
+          <div className="flex gap-3">
+            <button className={ui.btnPrimary} onClick={onSave}>
+              저장
+            </button>
+            <button className={ui.btnSecondary} onClick={onCancel}>
+              취소
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={ui.card}>
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <h3 className="font-semibold text-lg">{note.title}</h3>
+        <div className="flex gap-2">
+          <button
+            className="text-sm text-slate-500 hover:text-slate-700"
+            onClick={() => onEdit(note)}
+          >
+            수정
+          </button>
+          <button
+            className="text-sm text-rose-500 hover:text-rose-700"
+            onClick={() => onDelete(note.id)}
+          >
+            삭제
+          </button>
+        </div>
+      </div>
+      <div className="text-sm text-slate-600 whitespace-pre-wrap">
+        {note.content || <span className={ui.muted}>내용 없음</span>}
+      </div>
+      <div className="mt-3 text-xs text-slate-400">
+        {new Date(note.updatedAt).toLocaleDateString("ko-KR")}
+      </div>
+    </div>
+  );
+});
 
 export default function Notes() {
   const notes = useNotes();
@@ -18,7 +103,8 @@ export default function Notes() {
     noteId: string | null;
   }>({ isOpen: false, noteId: null });
 
-  const handleAdd = () => {
+  // useCallback으로 핸들러 함수들을 안정화하여 NoteCard 리렌더링 방지
+  const handleAdd = useCallback(() => {
     if (newNoteTitle.trim()) {
       addNote({
         title: newNoteTitle,
@@ -28,14 +114,14 @@ export default function Notes() {
       setNewNoteContent("");
       setShowNewForm(false);
     }
-  };
+  }, [newNoteTitle, newNoteContent, addNote]);
 
-  const handleEdit = (note: Note) => {
+  const handleEdit = useCallback((note: Note) => {
     setEditingNote(note);
     setIsEditing(note.id);
-  };
+  }, []);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (editingNote) {
       updateNote(editingNote.id, {
         title: editingNote.title,
@@ -44,18 +130,27 @@ export default function Notes() {
       setIsEditing(null);
       setEditingNote(null);
     }
-  };
+  }, [editingNote, updateNote]);
 
-  const handleDelete = (id: string) => {
+  const handleCancel = useCallback(() => {
+    setIsEditing(null);
+    setEditingNote(null);
+  }, []);
+
+  const handleDelete = useCallback((id: string) => {
     setDeleteConfirm({ isOpen: true, noteId: id });
-  };
+  }, []);
 
-  const confirmDelete = () => {
+  const confirmDelete = useCallback(() => {
     if (deleteConfirm.noteId) {
       removeNote(deleteConfirm.noteId);
       setDeleteConfirm({ isOpen: false, noteId: null });
     }
-  };
+  }, [deleteConfirm.noteId, removeNote]);
+
+  const handleEditingNoteChange = useCallback((note: Note) => {
+    setEditingNote(note);
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -117,68 +212,17 @@ export default function Notes() {
           </div>
         ) : (
           notes.map((note) => (
-            <div key={note.id} className={ui.card}>
-              {isEditing === note.id && editingNote ? (
-                <div className="space-y-3">
-                  <input
-                    type="text"
-                    className={ui.input}
-                    value={editingNote.title}
-                    onChange={(e) =>
-                      setEditingNote({ ...editingNote, title: e.target.value })
-                    }
-                  />
-                  <textarea
-                    className={ui.input}
-                    rows={5}
-                    value={editingNote.content}
-                    onChange={(e) =>
-                      setEditingNote({ ...editingNote, content: e.target.value })
-                    }
-                  />
-                  <div className="flex gap-3">
-                    <button className={ui.btnPrimary} onClick={handleSave}>
-                      저장
-                    </button>
-                    <button
-                      className={ui.btnSecondary}
-                      onClick={() => {
-                        setIsEditing(null);
-                        setEditingNote(null);
-                      }}
-                    >
-                      취소
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <h3 className="font-semibold text-lg">{note.title}</h3>
-                    <div className="flex gap-2">
-                      <button
-                        className="text-sm text-slate-500 hover:text-slate-700"
-                        onClick={() => handleEdit(note)}
-                      >
-                        수정
-                      </button>
-                      <button
-                        className="text-sm text-rose-500 hover:text-rose-700"
-                        onClick={() => handleDelete(note.id)}
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  </div>
-                  <div className="text-sm text-slate-600 whitespace-pre-wrap">
-                    {note.content || <span className={ui.muted}>내용 없음</span>}
-                  </div>
-                  <div className="mt-3 text-xs text-slate-400">
-                    {new Date(note.updatedAt).toLocaleDateString("ko-KR")}
-                  </div>
-                </>
-              )}
-            </div>
+            <NoteCard
+              key={note.id}
+              note={note}
+              isEditing={isEditing === note.id}
+              editingNote={isEditing === note.id ? editingNote : null}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              onEditingNoteChange={handleEditingNoteChange}
+            />
           ))
         )}
       </div>

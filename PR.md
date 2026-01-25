@@ -45,6 +45,47 @@
 - **향상된 카드 디자인**: 호버 시 그림자 효과 개선
 - **영향받은 파일**: `src/utils/ui.ts`
 
+---
+
+## 🚀 렌더링 최적화 (신규)
+
+### 3. React 렌더링 성능 개선
+
+#### 문제상황
+- 칸반 보드에서 카드 하나를 클릭/수정하면 **모든 카드가 리렌더링**됨
+- Home 페이지에서 할 일 추가 시 **전체 컴포넌트 트리가 리렌더링**됨
+- 메모장에서 메모 편집 시 **다른 메모들도 리렌더링**됨
+
+#### 원인분석
+1. **인라인 함수**: `onClick={() => fn()}` 형태로 매 렌더링마다 새 함수 생성
+2. **메모이제이션 없음**: 자식 컴포넌트에 `React.memo` 미적용
+3. **파생 상태 재계산**: 필터/정렬 결과가 매 렌더링마다 재계산됨
+
+#### 해결전략 및 적용
+
+| 기법 | 용도 | 적용 대상 |
+|------|------|-----------|
+| `React.memo` | 컴포넌트 메모이제이션 | ApplicationCard, KanbanColumn, TodoItem, NoteCard 등 |
+| `useMemo` | 계산 결과 캐싱 | upcoming, recent, activeTodos, stats 계산 |
+| `useCallback` | 함수 참조 안정화 | handleCardClick, handleAddTodo, handleEdit 등 |
+
+#### 수정된 파일
+- `src/kanban/ApplicationCard.tsx` - React.memo 적용
+- `src/kanban/KanbanColumn.tsx` - React.memo + useCallback 적용
+- `src/kanban/KanbanBoard.tsx` - useCallback 적용
+- `src/pages/Home.tsx` - TodoItem, RecentActivityCard 분리 + useMemo/useCallback 적용
+- `src/pages/Notes.tsx` - NoteCard 분리 + useCallback 적용
+- `src/pages/Resume.tsx` - ApplicationListItem, ResumeVersionCard 분리 + useMemo/useCallback 적용
+
+#### 최적화 결과
+| 항목 | Before | After |
+|------|--------|-------|
+| 카드 클릭 시 리렌더링 | 모든 카드 | 해당 카드만 |
+| 메모 편집 시 리렌더링 | 모든 메모 | 해당 메모만 |
+| Todo 추가 시 리렌더링 | 전체 Home | 관련 섹션만 |
+
+---
+
 ## 📁 변경된 파일
 
 ### 신규 파일
@@ -55,8 +96,12 @@
 - `src/store/applicationStore.tsx` - storage 유틸 사용, generateId 사용, 한국어 주석 추가
 - `src/store/noteStore.tsx` - generateId 사용
 - `src/store/todoStore.tsx` - generateId 사용
-- `src/pages/Resume.tsx` - generateId 사용, ConfirmDialog 적용
-- `src/pages/Notes.tsx` - ConfirmDialog 적용
+- `src/pages/Resume.tsx` - generateId 사용, ConfirmDialog 적용, 렌더링 최적화
+- `src/pages/Notes.tsx` - ConfirmDialog 적용, 렌더링 최적화
+- `src/pages/Home.tsx` - 렌더링 최적화
+- `src/kanban/ApplicationCard.tsx` - React.memo 적용
+- `src/kanban/KanbanColumn.tsx` - React.memo + useCallback 적용
+- `src/kanban/KanbanBoard.tsx` - useCallback 적용
 - `src/utils/ui.ts` - UI 스타일 개선 (그라디언트, 트랜지션 등)
 
 ## 🧪 테스트
@@ -65,6 +110,8 @@
 - [x] localStorage 저장/로드가 모든 store에서 정상 작동하는지 확인
 - [x] 확인 다이얼로그가 정상적으로 표시되는지 확인
 - [x] UI 변경사항이 모든 페이지에서 정상적으로 적용되는지 확인
+- [x] 렌더링 최적화가 정상 적용되는지 확인 (React DevTools)
+- [x] 빌드 성공 확인
 - [x] Linter 오류 없음 확인
 
 ## 💡 개선 효과
@@ -74,6 +121,7 @@
 3. **에러 처리 강화**: storage 유틸을 통한 통일된 에러 처리
 4. **사용자 경험 개선**: 커스텀 다이얼로그와 향상된 UI로 더 나은 사용자 경험 제공
 5. **코드 가독성 향상**: 한국어 주석 추가로 코드 이해도 개선
+6. **렌더링 성능 최적화**: React.memo, useMemo, useCallback 적용으로 불필요한 리렌더링 방지
 
 ## 📝 추가 사항
 
