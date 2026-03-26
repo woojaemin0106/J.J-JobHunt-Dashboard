@@ -2,6 +2,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { ui } from "../utils/ui";
 import { useAuth, useAuthActions } from "../store/authStore";
+import {
+  APPLICATION_SEARCH_PARAM_KEYS,
+  createApplicationSearchParams,
+  DEFAULT_APPLICATION_STATUS_FILTER,
+  normalizeApplicationQuery,
+  normalizeApplicationStatus,
+} from "../pages/applicationsSearchParams";
 
 function titleFromPath(pathname: string) {
   if (pathname === "/") return "홈";
@@ -13,11 +20,24 @@ function titleFromPath(pathname: string) {
 }
 
 export default function Header() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const title = titleFromPath(pathname);
   const { isAuthenticated, user } = useAuth();
   const { logout } = useAuthActions();
+  const isApplicationsPage = pathname.startsWith("/applications");
+  const currentSearchParams = new URLSearchParams(search);
+  const currentQuery = isApplicationsPage
+    ? normalizeApplicationQuery(
+        currentSearchParams.get(APPLICATION_SEARCH_PARAM_KEYS.query)
+      )
+    : "";
+  const currentStatus = isApplicationsPage
+    ? normalizeApplicationStatus(
+        currentSearchParams.get(APPLICATION_SEARCH_PARAM_KEYS.status)
+      )
+    : DEFAULT_APPLICATION_STATUS_FILTER;
+  const searchInputKey = `${pathname}:${search}`;
 
   return (
     <>
@@ -27,10 +47,24 @@ export default function Header() {
 
       <div className="hidden md:flex items-center gap-2 flex-1 min-w-0 max-w-xl mx-4">
         <input
+          key={searchInputKey}
           className={ui.input}
           placeholder="회사·직무 검색…"
+          defaultValue={currentQuery}
           onKeyDown={(e) => {
-            if (e.key === "Enter") navigate("/applications");
+            if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+
+            const query = normalizeApplicationQuery(e.currentTarget.value);
+            const params = createApplicationSearchParams({
+              query,
+              status: currentStatus,
+            });
+            const nextSearch = params.toString();
+
+            navigate({
+              pathname: "/applications",
+              search: nextSearch ? `?${nextSearch}` : "",
+            });
           }}
         />
       </div>

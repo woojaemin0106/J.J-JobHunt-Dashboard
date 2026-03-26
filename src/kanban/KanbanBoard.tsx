@@ -2,7 +2,6 @@
 import { useMemo, useCallback } from "react";
 import KanbanColumn from "./KanbanColumn";
 import type { Application } from "../types/application";
-import { useApplications } from "../store/applicationStore";
 
 type Status = Application["status"];
 
@@ -14,12 +13,12 @@ const COLUMNS: { key: Status; title: string }[] = [
 ];
 
 export default function KanbanBoard({
+  applications,
   onCardClick,
 }: {
+  applications: Application[];
   onCardClick?: (application: Application) => void;
 }) {
-  const applications = useApplications();
-
   // useMemo로 그룹핑 결과를 캐싱하여 applications가 변경될 때만 재계산
   const grouped = useMemo(() => {
     const map: Record<Status, Application[]> = {
