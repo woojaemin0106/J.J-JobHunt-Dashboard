@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../store/authStore";
+import {
+  getProtectedRouteAction,
+  getPublicOnlyRouteAction,
+} from "./routeGuardPolicy";
 
 function AuthLoadingScreen() {
   return (
@@ -12,18 +16,20 @@ function AuthLoadingScreen() {
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
+  const action = getProtectedRouteAction({ isAuthenticated, isLoading });
 
-  if (isLoading) return <AuthLoadingScreen />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (action === "loading") return <AuthLoadingScreen />;
+  if (action === "redirect-login") return <Navigate to="/login" replace />;
 
   return <>{children}</>;
 }
 
 export function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
+  const action = getPublicOnlyRouteAction({ isAuthenticated, isLoading });
 
-  if (isLoading) return <AuthLoadingScreen />;
-  if (isAuthenticated) return <Navigate to="/" replace />;
+  if (action === "loading") return <AuthLoadingScreen />;
+  if (action === "redirect-home") return <Navigate to="/" replace />;
 
   return <>{children}</>;
 }
