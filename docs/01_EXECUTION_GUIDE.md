@@ -372,3 +372,53 @@
 - [ ] Gate 1/2 완료 PR 본문에 본 섹션 링크와 수기 검증 표가 포함된다.
 - [ ] 추후 회귀 발생 시 본 체크리스트 항목에 회귀 케이스를 추가한다.
 - [ ] 정책 문서와 불일치 항목이 발견되면 ADR 또는 정책 개정으로 동기화한다.
+
+## EG-12 Gate 3 Operational Checklist (Release & Rollback)
+
+### Definition
+- This section defines the minimum repeatable release/rollback procedure required to close Gate 3.
+
+### Current State
+- CI quality workflow is introduced, but release execution consistency still depends on manual discipline.
+
+### Principles Going Forward
+- Every release MUST follow the same pre-release, release, post-release, and rollback flow.
+- Release owner and reviewer MUST be explicitly assigned before deployment.
+- If a blocker appears at any phase, deployment MUST pause immediately.
+
+### Pre-release Checklist (Must Pass)
+- [ ] `npm run lint` passed on the release branch
+- [ ] `npm run build` passed on the release branch
+- [ ] CI workflow status is green for the PR targeting `dev`
+- [ ] Required env vars are present (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`)
+- [ ] Core route guard scenarios are manually verified
+- [ ] Storage scope and migration behavior are manually verified
+
+### Release Steps
+1. Confirm merge commit references and changelog summary.
+2. Merge PR into `dev` with commit history preserved.
+3. Announce deployment window and owner in team channel.
+4. Deploy and capture deployment timestamp.
+
+### Post-release Verification
+- [ ] Public routes and protected routes behave correctly
+- [ ] Login/signup/logout flows work as expected
+- [ ] Application/Note/Todo CRUD works for current user scope
+- [ ] Browser console has no new high-severity errors
+
+### Rollback Triggers
+- [ ] Authentication unavailable for valid users
+- [ ] User-scoped data loss or cross-user data contamination
+- [ ] Core workflow regression in Applications/Notes/Todos
+
+### Rollback Procedure
+1. Stop further rollout and notify team immediately.
+2. Revert the release commit(s) on `dev`.
+3. Redeploy previous known-good revision.
+4. Re-run post-release verification checklist.
+5. Open incident record with root-cause and prevention tasks.
+
+### Verification Criteria
+- [ ] A new team member can execute this checklist without verbal guidance.
+- [ ] Release notes and actual deployed changes match.
+- [ ] Any rollback event leaves an auditable incident trail.
