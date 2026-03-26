@@ -4,6 +4,9 @@ import { ui } from "../utils/ui";
 import KanbanBoard from "../kanban/KanbanBoard";
 import ApplicationModal from "../kanban/ApplicationModal";
 import type { Application } from "../types/application";
+import {
+  APPLICATION_SEARCH_PARAM_KEYS,
+} from "./applicationsSearchParams";
 
 type ModalState =
   | { type: "create" }
@@ -14,7 +17,8 @@ export default function Applications() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [modalState, setModalState] = useState<ModalState>(null);
 
-  const isOpenByQuery = searchParams.get("new") === "true";
+  const isOpenByQuery =
+    searchParams.get(APPLICATION_SEARCH_PARAM_KEYS.createNew) === "true";
   const isModalOpen = modalState !== null || isOpenByQuery;
   const selectedApplication =
     modalState?.type === "edit" ? modalState.application : null;
@@ -36,7 +40,9 @@ export default function Applications() {
   const handleCloseModal = () => {
     setModalState(null);
     if (isOpenByQuery) {
-      setSearchParams({}, { replace: true });
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete(APPLICATION_SEARCH_PARAM_KEYS.createNew);
+      setSearchParams(nextParams, { replace: true });
     }
   };
 
