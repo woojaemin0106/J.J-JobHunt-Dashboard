@@ -38,6 +38,11 @@ type Actions = {
   logout: () => Promise<void>;
 };
 
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
 const StateCtx = createContext<AuthContextState | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
@@ -82,38 +87,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const actions: Actions = {
     async login(email, password) {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      if (error) {
-        console.error("Login Error:", error.message);
+        if (error) {
+          console.error("[auth] login failed:", error.message);
+          return false;
+        }
+        return !!data.user;
+      } catch (error) {
+        console.error("[auth] login failed:", toErrorMessage(error));
         return false;
       }
-      return !!data.user;
     },
 
     async signup(email, password, name) {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+            },
           },
-        },
-      });
+        });
 
-      if (error) {
-        console.error("Signup Error:", error.message);
+        if (error) {
+          console.error("[auth] signup failed:", error.message);
+          return false;
+        }
+        return !!data.user;
+      } catch (error) {
+        console.error("[auth] signup failed:", toErrorMessage(error));
         return false;
       }
-      return !!data.user;
     },
 
     async logout() {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("[auth] logout failed:", error.message);
+      }
     },
   };
 

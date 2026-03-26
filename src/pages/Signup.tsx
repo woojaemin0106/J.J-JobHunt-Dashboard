@@ -1,7 +1,7 @@
-// src/pages/Signup.tsx
 import { useState, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthActions } from "../store/authStore";
+import { ERROR_MESSAGES } from "../utils/errorMessages";
 import { ui } from "../utils/ui";
 
 export default function Signup() {
@@ -23,10 +23,10 @@ export default function Signup() {
       if (success) {
         navigate("/");
       } else {
-        setError("이미 등록된 이메일입니다.");
+        setError(ERROR_MESSAGES.auth.signupFailed);
       }
     } catch {
-      setError("오류가 발생했습니다. 다시 시도해주세요.");
+      setError(ERROR_MESSAGES.auth.retry);
     } finally {
       setIsLoading(false);
     }
@@ -36,7 +36,6 @@ export default function Signup() {
     <div className={ui.page}>
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          {/* 회원가입 카드 */}
           <div className={ui.card}>
             <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
