@@ -5,6 +5,7 @@ import KanbanBoard from "../kanban/KanbanBoard";
 import ApplicationModal from "../kanban/ApplicationModal";
 import type { Application } from "../types/application";
 import { useApplications } from "../store/applicationStore";
+import { filterApplications } from "./filterApplications";
 import {
   APPLICATION_SEARCH_PARAM_KEYS,
   createApplicationSearchParams,
@@ -28,7 +29,6 @@ export default function Applications() {
   const statusFilter = normalizeApplicationStatus(
     searchParams.get(APPLICATION_SEARCH_PARAM_KEYS.status)
   );
-  const normalizedQueryFilter = queryFilter.toLowerCase();
   const hasActiveFilters =
     queryFilter.length > 0 || statusFilter !== DEFAULT_APPLICATION_STATUS_FILTER;
 
@@ -62,21 +62,11 @@ export default function Applications() {
   };
 
   const filteredApplications = useMemo(() => {
-    return applications.filter((application) => {
-      const matchesStatus =
-        statusFilter === "all" || application.status === statusFilter;
-      if (!matchesStatus) return false;
-
-      if (!normalizedQueryFilter) return true;
-
-      const companyName = application.companyName.toLowerCase();
-      const jobTitle = application.jobTitle.toLowerCase();
-      return (
-        companyName.includes(normalizedQueryFilter) ||
-        jobTitle.includes(normalizedQueryFilter)
-      );
+    return filterApplications(applications, {
+      query: queryFilter,
+      status: statusFilter,
     });
-  }, [applications, normalizedQueryFilter, statusFilter]);
+  }, [applications, queryFilter, statusFilter]);
 
   const handleStatusFilterChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const nextStatus = normalizeApplicationStatus(event.target.value);
