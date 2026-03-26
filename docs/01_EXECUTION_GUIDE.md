@@ -422,3 +422,32 @@
 - [ ] A new team member can execute this checklist without verbal guidance.
 - [ ] Release notes and actual deployed changes match.
 - [ ] Any rollback event leaves an auditable incident trail.
+
+## EG-13 Applications Search & Filter Rollout (2026-03-26)
+
+### Definition
+- Record implementation evidence for URL-driven applications search and status filtering.
+- This section maps directly to policy IDs `BP-03`, `BP-04`, `BP-10`, and `BP-11`.
+
+### Current State
+- `/applications` uses a single query contract: `query`, `status`, `new`.
+- Header Enter search navigates to `/applications` and applies `query/status` consistently.
+- Applications page applies query/status filters to board data and shows empty-result recovery guidance.
+
+### Principles Going Forward
+- Query key changes MUST be managed in `src/pages/applicationsSearchParams.ts` as the local SSOT.
+- Filter UI and URL state SHOULD stay synchronized; new statuses require options + normalization updates together.
+- Empty-result state MUST include a recovery action message (change query or reset filters).
+- PR descriptions SHOULD include policy IDs and manual verification outcomes.
+
+### Manual Verification Checklist
+- [x] Enter in header search moves to `/applications?query=...`.
+- [x] Changing the status filter updates URL and board results together.
+- [x] Reset filter clears `query/status` while preserving `new` when needed.
+- [x] Empty-result guidance card appears when filtered result count is zero.
+- [x] `npm run lint` and `npm run build` pass.
+
+### Verification Criteria
+- [ ] A new implementer can validate search/filter behavior from this section alone.
+- [ ] Policy ID mapping (`BP-03`, `BP-04`, `BP-10`, `BP-11`) matches the PR body.
+- [ ] Any query-contract change updates this section and `applicationsSearchParams.ts` together.
