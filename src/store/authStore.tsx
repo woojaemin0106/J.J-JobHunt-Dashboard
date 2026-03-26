@@ -4,14 +4,16 @@ import React, {
   useEffect,
   useReducer,
 } from "react";
-import { supabase } from '../supabase/supabase';
+import { supabase } from "../supabase/supabase";
 import type { User, AuthState } from "../types/auth";
 
 type Action =
   | { type: "SET_USER"; payload: User | null }
   | { type: "LOADING_END" };
 
-function reducer(state: AuthState & { isLoading: boolean }, action: Action): any {
+type AuthContextState = AuthState & { isLoading: boolean };
+
+function reducer(state: AuthContextState, action: Action): AuthContextState {
   switch (action.type) {
     case "SET_USER":
       return {
@@ -36,7 +38,7 @@ type Actions = {
   logout: () => Promise<void>;
 };
 
-const StateCtx = createContext<AuthState & { isLoading: boolean } | null>(null);
+const StateCtx = createContext<AuthContextState | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
