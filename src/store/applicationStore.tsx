@@ -1,7 +1,3 @@
-/**
- * 지원 정보(Application) 상태 관리 Store
- * Context API와 useReducer를 사용한 전역 상태 관리
- */
 import React, {
   createContext,
   useContext,
@@ -10,14 +6,23 @@ import React, {
   useReducer,
   useRef,
 } from "react";
-import type { Application } from "../types/application";
 import mockApplications from "../data/mockApplications";
-import { storage } from "../utils/storage";
+import { useAuth } from "./authStore";
+import type { Application } from "../types/application";
 import { generateId } from "../utils/id";
+import { storage } from "../utils/storage";
+import {
+  buildScopeId,
+  buildScopedStorageKey,
+  migrateLegacyToScoped,
+} from "../utils/scopedStorage";
 
 type Status = Application["status"];
 
-const STORAGE_KEY = "jj_jobhunt_applications_v1";
+const STORAGE_RESOURCE = "applications";
+const LEGACY_STORAGE_KEY = "jj_jobhunt_applications_v1";
+const STORAGE_VERSION = 2;
+const LEGACY_VERSION = 1;
 
 type State = { applications: Application[] };
 
@@ -69,33 +74,68 @@ type Actions = {
 const StateCtx = createContext<State | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
+function loadApplications(scopeId: string): Application[] {
+  const scopedKey = buildScopedStorageKey(
+    STORAGE_RESOURCE,
+    STORAGE_VERSION,
+    scopeId
+  );
+  const scopedData = storage.get<Application[]>(scopedKey);
+  if (scopedData !== null) return scopedData;
+
+  // Migrate once per user scope. Do not auto-migrate for guest scope.
+  if (scopeId !== "guest") {
+    const migrated = migrateLegacyToScoped<Application[]>({
+      legacyKey: LEGACY_STORAGE_KEY,
+      resource: STORAGE_RESOURCE,
+      scopeId,
+      fromVersion: LEGACY_VERSION,
+      toVersion: STORAGE_VERSION,
+    });
+
+    if (migrated !== null) return migrated;
+  }
+
+  return mockApplications;
+}
+
 export function ApplicationProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // 초기 상태를 localStorage에서 직접 가져오거나 mock 데이터 사용
+  const { user } = useAuth();
+  const scopeId = buildScopeId(user?.id);
+  const storageKey = useMemo(
+    () => buildScopedStorageKey(STORAGE_RESOURCE, STORAGE_VERSION, scopeId),
+    [scopeId]
+  );
+
   const [state, dispatch] = useReducer(
     reducer,
     { applications: [] },
-    () => {
-      const fromStorage = storage.get<Application[]>(STORAGE_KEY);
-      return { applications: fromStorage ?? mockApplications };
-    }
+    () => ({ applications: loadApplications(scopeId) })
   );
 
-  // 초기 로드 완료 여부를 추적하는 ref
-  const isInitialized = useRef(false);
+  const previousScopeRef = useRef(scopeId);
+  const skipPersistRef = useRef(false);
 
   useEffect(() => {
-    // 첫 마운트 시에는 localStorage에서 이미 불러왔으므로 저장하지 않음
-    if (!isInitialized.current) {
-      isInitialized.current = true;
+    if (previousScopeRef.current === scopeId) return;
+
+    previousScopeRef.current = scopeId;
+    skipPersistRef.current = true;
+    dispatch({ type: "INIT", payload: loadApplications(scopeId) });
+  }, [scopeId]);
+
+  useEffect(() => {
+    if (skipPersistRef.current) {
+      skipPersistRef.current = false;
       return;
     }
-    // 이후 상태 변경 시에만 localStorage에 저장
-    storage.set(STORAGE_KEY, state.applications);
-  }, [state.applications]);
+
+    storage.set(storageKey, state.applications);
+  }, [state.applications, storageKey]);
 
   const actions = useMemo<Actions>(() => {
     return {
