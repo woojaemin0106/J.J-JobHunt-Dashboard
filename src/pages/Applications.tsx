@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ui } from "../utils/ui";
 import KanbanBoard from "../kanban/KanbanBoard";
@@ -7,6 +7,8 @@ import type { Application } from "../types/application";
 import { useApplications } from "../store/applicationStore";
 import {
   APPLICATION_SEARCH_PARAM_KEYS,
+  createApplicationSearchParams,
+  DEFAULT_APPLICATION_STATUS_FILTER,
   normalizeApplicationQuery,
   normalizeApplicationStatus,
 } from "./applicationsSearchParams";
@@ -27,6 +29,8 @@ export default function Applications() {
     searchParams.get(APPLICATION_SEARCH_PARAM_KEYS.status)
   );
   const normalizedQueryFilter = queryFilter.toLowerCase();
+  const hasActiveFilters =
+    queryFilter.length > 0 || statusFilter !== DEFAULT_APPLICATION_STATUS_FILTER;
 
   const isOpenByQuery =
     searchParams.get(APPLICATION_SEARCH_PARAM_KEYS.createNew) === "true";
@@ -74,6 +78,23 @@ export default function Applications() {
     });
   }, [applications, normalizedQueryFilter, statusFilter]);
 
+  const handleStatusFilterChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const nextStatus = normalizeApplicationStatus(event.target.value);
+    const nextParams = createApplicationSearchParams({
+      query: queryFilter,
+      status: nextStatus,
+      createNew: isOpenByQuery,
+    });
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const handleClearFilters = () => {
+    const nextParams = createApplicationSearchParams({
+      createNew: isOpenByQuery,
+    });
+    setSearchParams(nextParams, { replace: true });
+  };
+
   return (
     <div className="space-y-4">
       <div className={ui.card}>
@@ -86,7 +107,49 @@ export default function Applications() {
             + 새 지원 추가
           </button>
         </div>
+
+        <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <label className="text-sm text-slate-600" htmlFor="status-filter">
+              상태 필터
+            </label>
+            <select
+              id="status-filter"
+              className={`${ui.input} sm:w-48`}
+              value={statusFilter}
+              onChange={handleStatusFilterChange}
+            >
+              <option value="all">전체 상태</option>
+              <option value="writing">작성 중</option>
+              <option value="submitted">지원 완료</option>
+              <option value="passed">합격</option>
+              <option value="failed">불합격</option>
+            </select>
+            <button
+              className={`${ui.btnSecondary} ${
+                hasActiveFilters ? "" : "cursor-not-allowed opacity-60"
+              }`}
+              onClick={handleClearFilters}
+              disabled={!hasActiveFilters}
+            >
+              필터 초기화
+            </button>
+          </div>
+
+          <div className="text-sm text-slate-600">
+            {filteredApplications.length} / {applications.length}건 표시
+          </div>
+        </div>
       </div>
+
+      {applications.length > 0 && filteredApplications.length === 0 ? (
+        <div className={ui.card}>
+          <div className={ui.cardTitle}>검색 결과가 없습니다</div>
+          <div className={ui.muted}>
+            다른 검색어를 입력하거나 상태 필터를 초기화해 주세요.
+          </div>
+        </div>
+      ) : null}
 
       <KanbanBoard
         applications={filteredApplications}
