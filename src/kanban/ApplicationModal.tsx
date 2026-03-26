@@ -1,5 +1,5 @@
 // src/kanban/ApplicationModal.tsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Application } from "../types/application";
 import { ui } from "../utils/ui";
 import { useApplicationActions } from "../store/applicationStore";
@@ -12,6 +12,13 @@ interface ApplicationModalProps {
   onClose: () => void;
 }
 
+type FormData = {
+  companyName: string;
+  jobTitle: string;
+  status: Status;
+  deadline: string;
+};
+
 const STATUS_OPTIONS: { value: Status; label: string }[] = [
   { value: "writing", label: "Writing" },
   { value: "submitted", label: "Submitted" },
@@ -19,36 +26,33 @@ const STATUS_OPTIONS: { value: Status; label: string }[] = [
   { value: "failed", label: "Failed" },
 ];
 
+function createInitialFormData(application: Application | null): FormData {
+  if (!application) {
+    return {
+      companyName: "",
+      jobTitle: "",
+      status: "writing",
+      deadline: "",
+    };
+  }
+
+  return {
+    companyName: application.companyName,
+    jobTitle: application.jobTitle,
+    status: application.status,
+    deadline: application.deadline || "",
+  };
+}
+
 export default function ApplicationModal({
   application,
   isOpen,
   onClose,
 }: ApplicationModalProps) {
   const { addApplication, updateApplication } = useApplicationActions();
-  const [formData, setFormData] = useState({
-    companyName: "",
-    jobTitle: "",
-    status: "writing" as Status,
-    deadline: "",
-  });
-
-  useEffect(() => {
-    if (application) {
-      setFormData({
-        companyName: application.companyName,
-        jobTitle: application.jobTitle,
-        status: application.status,
-        deadline: application.deadline || "",
-      });
-    } else {
-      setFormData({
-        companyName: "",
-        jobTitle: "",
-        status: "writing",
-        deadline: "",
-      });
-    }
-  }, [application, isOpen]);
+  const [formData, setFormData] = useState<FormData>(() =>
+    createInitialFormData(application)
+  );
 
   if (!isOpen) return null;
 

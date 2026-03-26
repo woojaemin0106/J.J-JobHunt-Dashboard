@@ -336,3 +336,39 @@
 - [ ] ì‹ ê·œ ì°¸ì—¬ì ì²« PRì— ì •ì±… ID ì°¸ì¡°ê°€ í¬í•¨ëœë‹¤.
 - [ ] ì²« PRì—ì„œ í…ŒìŠ¤íŠ¸/ë¬¸ì„œ/ë¦¬ë·° ê¸°ì¤€ì´ ì¶©ì¡±ëœë‹¤.
 - [ ] ì˜¨ë³´ë”© ì¢…ë£Œ í›„ ê°œì„  í”¼ë“œë°±ì´ ë¬¸ì„œì— ë°˜ì˜ëœë‹¤.
+
+## EG-11 Gate 1+2 ¿Ï·á ±Ù°Å (2026-03-26)
+
+### Á¤ÀÇ
+- Gate 1(Ç°Áú ¾ÈÁ¤È­), Gate 2(°æ°è È®¸³) Àû¿ë °á°ú¿Í ¼ö±â Àç°ËÅä °á°ú¸¦ ±â·ÏÇÑ´Ù.
+
+### ÇöÀç »óÅÂ
+- º» ºê·£Ä¡(`feat/gate1-gate2-stability`)¿¡¼­ Gate 1+2 ¹İ¿µ Ä¿¹ÔÀÌ ºĞ¸®µÇ¾î °ü¸®µÇ°í ÀÖ´Ù.
+- lint/build´Â ÇöÀç ±âÁØ Åë°ú »óÅÂ´Ù.
+
+### ¾ÕÀ¸·ÎÀÇ ¿øÄ¢
+- ¾Æ·¡ Ç¥¸¦ Gate ¿Ï·á ±â·ÏÀÇ ÃÖ¼Ò Æ÷¸ËÀ¸·Î °íÁ¤ÇÑ´Ù.
+- Á¤Ã¥ ID ¿¬°áÀº `BP-08`, `BP-09`, `BP-12`, `BP-13`¸¦ ±âº» ÂüÁ¶·Î À¯ÁöÇÑ´Ù.
+
+| Gate | º¯°æ Ç×¸ñ | ±Ù°Å Ä¿¹Ô(¿ä¾à) | Á¤Ã¥ ID |
+|---|---|---|---|
+| Gate 1 | ÀúÀ§Çè lint Á¤¸®(no-unused-vars, any Á¦°Å) | `fix: resolve low-risk lint issues in auth and forms` | BP-11, BP-13 |
+| Gate 1 | set-state-in-effect Á¦°Å | `refactor: remove set-state-in-effect from applications modal flow` | BP-11 |
+| Gate 1 | store ¹üÀ§ ESLint ±¹¼Ò ¿ÏÈ­ | `chore: relax react-refresh rule for store context modules` | BP-13 |
+| Gate 2 | ÀÎÁõ °æ°è Á¤¸®(Áßº¹ Provider Á¦°Å, °ø°³/º¸È£ ¶ó¿ìÆ®) | `feat: add route guards and remove duplicate auth provider` | BP-09 |
+| Gate 2 | user ½ºÄÚÇÁ ÀúÀå Å° + 1È¸ ¸¶ÀÌ±×·¹ÀÌ¼Ç | `feat: scope persisted data by user with one-time migration` | BP-08 |
+| Gate 2 | ¿À·ù Ã³¸® ¹®±¸/·Î±× ±âÁØ Á¤·Ä | `refactor: standardize auth error messages and safe diagnostics` | BP-12 |
+
+### ¼ö±â Àç°ËÅä Ã¼Å©¸®½ºÆ®
+- [x] ºñÀÎÁõ »ç¿ëÀÚ´Â `/login`, `/signup`¸¸ Á¢±Ù °¡´ÉÇÏ°í º¸È£ ¶ó¿ìÆ® Á¢±Ù ½Ã `/login`À¸·Î ¸®´ÙÀÌ·ºÆ®µÈ´Ù.
+- [x] ÀÎÁõ »ç¿ëÀÚ´Â `/login`, `/signup` Á¢±Ù ½Ã `/`·Î ¸®´ÙÀÌ·ºÆ®µÈ´Ù.
+- [x] `ApplicationModal`ÀÇ ½Å±Ô/¼öÁ¤ ¿­±â, ´İ±â, URL `?new=true` µ¿ÀÛÀÌ À¯ÁöµÈ´Ù.
+- [x] `localStorage`°¡ `jj.jobhunt.{resource}.v2.user:{scope}` ÆĞÅÏÀ¸·Î ÀúÀåµÈ´Ù.
+- [x] ·¹°Å½Ã Å°(`jj_jobhunt_*_v1`)¿¡¼­ ½Å±Ô Å°·Î 1È¸ ÀÌ°ü ÈÄ Áßº¹ ÀÌ°üÀÌ ¹æÁöµÈ´Ù.
+- [x] ÀÎÁõ/ÀúÀå ½ÇÆĞ ¸Ş½ÃÁö°¡ º¹±¸ Çàµ¿ Áß½É ¹®±¸¸¦ »ç¿ëÇÑ´Ù.
+- [x] `npm run lint`, `npm run build`°¡ Åë°úÇÑ´Ù.
+
+### °ËÁõ ±âÁØ
+- [ ] Gate 1/2 ¿Ï·á PR º»¹®¿¡ º» ¼½¼Ç ¸µÅ©¿Í ¼ö±â °ËÁõ Ç¥°¡ Æ÷ÇÔµÈ´Ù.
+- [ ] ÃßÈÄ È¸±Í ¹ß»ı ½Ã º» Ã¼Å©¸®½ºÆ® Ç×¸ñ¿¡ È¸±Í ÄÉÀÌ½º¸¦ Ãß°¡ÇÑ´Ù.
+- [ ] Á¤Ã¥ ¹®¼­¿Í ºÒÀÏÄ¡ Ç×¸ñÀÌ ¹ß°ßµÇ¸é ADR ¶Ç´Â Á¤Ã¥ °³Á¤À¸·Î µ¿±âÈ­ÇÑ´Ù.

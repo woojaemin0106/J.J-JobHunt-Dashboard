@@ -4,14 +4,16 @@ import React, {
   useEffect,
   useReducer,
 } from "react";
-import { supabase } from '../supabase/supabase';
+import { supabase } from "../supabase/supabase";
 import type { User, AuthState } from "../types/auth";
 
 type Action =
   | { type: "SET_USER"; payload: User | null }
   | { type: "LOADING_END" };
 
-function reducer(state: AuthState & { isLoading: boolean }, action: Action): any {
+type AuthContextState = AuthState & { isLoading: boolean };
+
+function reducer(state: AuthContextState, action: Action): AuthContextState {
   switch (action.type) {
     case "SET_USER":
       return {
@@ -36,7 +38,12 @@ type Actions = {
   logout: () => Promise<void>;
 };
 
-const StateCtx = createContext<AuthState & { isLoading: boolean } | null>(null);
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+const StateCtx = createContext<AuthContextState | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -80,38 +87,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const actions: Actions = {
     async login(email, password) {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      if (error) {
-        console.error("Login Error:", error.message);
+        if (error) {
+          console.error("[auth] login failed:", error.message);
+          return false;
+        }
+        return !!data.user;
+      } catch (error) {
+        console.error("[auth] login failed:", toErrorMessage(error));
         return false;
       }
-      return !!data.user;
     },
 
     async signup(email, password, name) {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+            },
           },
-        },
-      });
+        });
 
-      if (error) {
-        console.error("Signup Error:", error.message);
+        if (error) {
+          console.error("[auth] signup failed:", error.message);
+          return false;
+        }
+        return !!data.user;
+      } catch (error) {
+        console.error("[auth] signup failed:", toErrorMessage(error));
         return false;
       }
-      return !!data.user;
     },
 
     async logout() {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("[auth] logout failed:", error.message);
+      }
     },
   };
 

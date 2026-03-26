@@ -1,7 +1,7 @@
-// src/pages/Login.tsx
 import { useState, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthActions } from "../store/authStore";
+import { ERROR_MESSAGES } from "../utils/errorMessages";
 import { ui } from "../utils/ui";
 
 export default function Login() {
@@ -22,10 +22,10 @@ export default function Login() {
       if (success) {
         navigate("/");
       } else {
-        setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+        setError(ERROR_MESSAGES.auth.invalidCredentials);
       }
-    } catch (err) {
-      setError("오류가 발생했습니다. 다시 시도해주세요.");
+    } catch {
+      setError(ERROR_MESSAGES.auth.retry);
     } finally {
       setIsLoading(false);
     }
@@ -35,7 +35,6 @@ export default function Login() {
     <div className={ui.page}>
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          {/* 로그인 카드 */}
           <div className={ui.card}>
             <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
@@ -86,9 +85,7 @@ export default function Login() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-slate-500 text-sm">
-                JOBFLUX가 처음이신가요?
-              </p>
+              <p className="text-slate-500 text-sm">JOBFLUX가 처음이신가요?</p>
               <Link
                 to="/signup"
                 className="text-indigo-600 hover:text-indigo-700 hover:underline mt-2 inline-block text-sm font-medium"

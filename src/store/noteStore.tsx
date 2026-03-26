@@ -6,11 +6,20 @@ import React, {
   useReducer,
   useRef,
 } from "react";
+import { useAuth } from "./authStore";
 import type { Note } from "../types/note";
-import { storage } from "../utils/storage";
 import { generateId } from "../utils/id";
+import { storage } from "../utils/storage";
+import {
+  buildScopeId,
+  buildScopedStorageKey,
+  migrateLegacyToScoped,
+} from "../utils/scopedStorage";
 
-const STORAGE_KEY = "jj_jobhunt_notes_v1";
+const STORAGE_RESOURCE = "notes";
+const LEGACY_STORAGE_KEY = "jj_jobhunt_notes_v1";
+const STORAGE_VERSION = 2;
+const LEGACY_VERSION = 1;
 
 type State = { notes: Note[] };
 
@@ -52,29 +61,63 @@ type Actions = {
 const StateCtx = createContext<State | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
+function loadNotes(scopeId: string): Note[] {
+  const scopedKey = buildScopedStorageKey(
+    STORAGE_RESOURCE,
+    STORAGE_VERSION,
+    scopeId
+  );
+  const scopedData = storage.get<Note[]>(scopedKey);
+  if (scopedData !== null) return scopedData;
+
+  if (scopeId !== "guest") {
+    const migrated = migrateLegacyToScoped<Note[]>({
+      legacyKey: LEGACY_STORAGE_KEY,
+      resource: STORAGE_RESOURCE,
+      scopeId,
+      fromVersion: LEGACY_VERSION,
+      toVersion: STORAGE_VERSION,
+    });
+
+    if (migrated !== null) return migrated;
+  }
+
+  return [];
+}
+
 export function NoteProvider({ children }: { children: React.ReactNode }) {
-  // 초기 상태를 localStorage에서 직접 가져오기
+  const { user } = useAuth();
+  const scopeId = buildScopeId(user?.id);
+  const storageKey = useMemo(
+    () => buildScopedStorageKey(STORAGE_RESOURCE, STORAGE_VERSION, scopeId),
+    [scopeId]
+  );
+
   const [state, dispatch] = useReducer(
     reducer,
     { notes: [] },
-    () => {
-      const fromStorage = storage.get<Note[]>(STORAGE_KEY);
-      return { notes: fromStorage ?? [] };
-    }
+    () => ({ notes: loadNotes(scopeId) })
   );
 
-  // 초기 로드 완료 여부를 추적하는 ref
-  const isInitialized = useRef(false);
+  const previousScopeRef = useRef(scopeId);
+  const skipPersistRef = useRef(false);
 
   useEffect(() => {
-    // 첫 마운트 시에는 localStorage에서 이미 불러왔으므로 저장하지 않음
-    if (!isInitialized.current) {
-      isInitialized.current = true;
+    if (previousScopeRef.current === scopeId) return;
+
+    previousScopeRef.current = scopeId;
+    skipPersistRef.current = true;
+    dispatch({ type: "INIT", payload: loadNotes(scopeId) });
+  }, [scopeId]);
+
+  useEffect(() => {
+    if (skipPersistRef.current) {
+      skipPersistRef.current = false;
       return;
     }
-    // 이후 상태 변경 시에만 localStorage에 저장
-    storage.set(STORAGE_KEY, state.notes);
-  }, [state.notes]);
+
+    storage.set(storageKey, state.notes);
+  }, [state.notes, storageKey]);
 
   const actions = useMemo<Actions>(() => {
     return {
@@ -109,7 +152,6 @@ export function useNotes() {
 
 export function useNoteActions() {
   const ctx = useContext(ActionsCtx);
-  if (!ctx)
-    throw new Error("useNoteActions must be used within NoteProvider");
+  if (!ctx) throw new Error("useNoteActions must be used within NoteProvider");
   return ctx;
 }

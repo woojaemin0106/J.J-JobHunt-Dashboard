@@ -1,39 +1,43 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ui } from "../utils/ui";
 import KanbanBoard from "../kanban/KanbanBoard";
 import ApplicationModal from "../kanban/ApplicationModal";
 import type { Application } from "../types/application";
 
+type ModalState =
+  | { type: "create" }
+  | { type: "edit"; application: Application }
+  | null;
+
 export default function Applications() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedApplication, setSelectedApplication] =
-    useState<Application | null>(null);
+  const [modalState, setModalState] = useState<ModalState>(null);
 
-  // URL query parameter를 확인하여 모달 열기
-  useEffect(() => {
-    if (searchParams.get("new") === "true") {
-      setIsModalOpen(true);
-      setSelectedApplication(null);
-      // URL에서 query parameter 제거
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
+  const isOpenByQuery = searchParams.get("new") === "true";
+  const isModalOpen = modalState !== null || isOpenByQuery;
+  const selectedApplication =
+    modalState?.type === "edit" ? modalState.application : null;
+  const modalKey =
+    modalState?.type === "edit"
+      ? `edit-${modalState.application.id}`
+      : isModalOpen
+      ? "create"
+      : "closed";
 
   const handleAddNew = () => {
-    setSelectedApplication(null);
-    setIsModalOpen(true);
+    setModalState({ type: "create" });
   };
 
   const handleCardClick = (app: Application) => {
-    setSelectedApplication(app);
-    setIsModalOpen(true);
+    setModalState({ type: "edit", application: app });
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedApplication(null);
+    setModalState(null);
+    if (isOpenByQuery) {
+      setSearchParams({}, { replace: true });
+    }
   };
 
   return (
@@ -53,6 +57,7 @@ export default function Applications() {
       <KanbanBoard onCardClick={handleCardClick} />
 
       <ApplicationModal
+        key={modalKey}
         application={selectedApplication}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
