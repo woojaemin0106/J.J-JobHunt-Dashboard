@@ -75,7 +75,7 @@ export default function Signup() {
                   placeholder="비밀번호 (최소 6자 이상)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  minLength={4}
+                  minLength={6}
                   className={ui.input}
                 />
               </div>
