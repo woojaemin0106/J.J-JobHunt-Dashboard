@@ -5,28 +5,24 @@ import React, {
   useReducer,
 } from "react";
 import { supabase } from "../supabase/supabase";
-import type { User, AuthState } from "../types/auth";
+import type { User } from "../types/auth";
+import {
+  applyLoadingEnd,
+  applySetUser,
+  createInitialAuthContextState,
+  type AuthContextState,
+} from "./authStatePolicy";
 
 type Action =
   | { type: "SET_USER"; payload: User | null }
   | { type: "LOADING_END" };
 
-type AuthContextState = AuthState & { isLoading: boolean };
-
 function reducer(state: AuthContextState, action: Action): AuthContextState {
   switch (action.type) {
     case "SET_USER":
-      return {
-        ...state,
-        user: action.payload,
-        isAuthenticated: action.payload !== null,
-        isLoading: false,
-      };
+      return applySetUser(state, action.payload);
     case "LOADING_END":
-      return {
-        ...state,
-        isLoading: false,
-      };
+      return applyLoadingEnd(state);
     default:
       return state;
   }
@@ -47,11 +43,7 @@ const StateCtx = createContext<AuthContextState | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, {
-    user: null,
-    isAuthenticated: false,
-    isLoading: true, // 초기 로딩 상태 추가
-  });
+  const [state, dispatch] = useReducer(reducer, createInitialAuthContextState());
 
   useEffect(() => {
     // 1. 초기 접속 시 현재 세션 확인
