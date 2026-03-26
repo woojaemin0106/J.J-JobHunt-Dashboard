@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ui } from "../utils/ui";
 import KanbanBoard from "../kanban/KanbanBoard";
 import ApplicationModal from "../kanban/ApplicationModal";
 import type { Application } from "../types/application";
+import { useApplications } from "../store/applicationStore";
 import {
   APPLICATION_SEARCH_PARAM_KEYS,
+  normalizeApplicationQuery,
+  normalizeApplicationStatus,
 } from "./applicationsSearchParams";
 
 type ModalState =
@@ -14,8 +17,16 @@ type ModalState =
   | null;
 
 export default function Applications() {
+  const applications = useApplications();
   const [searchParams, setSearchParams] = useSearchParams();
   const [modalState, setModalState] = useState<ModalState>(null);
+  const queryFilter = normalizeApplicationQuery(
+    searchParams.get(APPLICATION_SEARCH_PARAM_KEYS.query)
+  );
+  const statusFilter = normalizeApplicationStatus(
+    searchParams.get(APPLICATION_SEARCH_PARAM_KEYS.status)
+  );
+  const normalizedQueryFilter = queryFilter.toLowerCase();
 
   const isOpenByQuery =
     searchParams.get(APPLICATION_SEARCH_PARAM_KEYS.createNew) === "true";
@@ -46,6 +57,23 @@ export default function Applications() {
     }
   };
 
+  const filteredApplications = useMemo(() => {
+    return applications.filter((application) => {
+      const matchesStatus =
+        statusFilter === "all" || application.status === statusFilter;
+      if (!matchesStatus) return false;
+
+      if (!normalizedQueryFilter) return true;
+
+      const companyName = application.companyName.toLowerCase();
+      const jobTitle = application.jobTitle.toLowerCase();
+      return (
+        companyName.includes(normalizedQueryFilter) ||
+        jobTitle.includes(normalizedQueryFilter)
+      );
+    });
+  }, [applications, normalizedQueryFilter, statusFilter]);
+
   return (
     <div className="space-y-4">
       <div className={ui.card}>
@@ -60,7 +88,10 @@ export default function Applications() {
         </div>
       </div>
 
-      <KanbanBoard onCardClick={handleCardClick} />
+      <KanbanBoard
+        applications={filteredApplications}
+        onCardClick={handleCardClick}
+      />
 
       <ApplicationModal
         key={modalKey}
