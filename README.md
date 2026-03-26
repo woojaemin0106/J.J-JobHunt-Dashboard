@@ -50,3 +50,25 @@ Team
 [우재민] (Frontend)
 
 [김재윤] (Frontend)
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill your values.
+
+```bash
+cp .env.example .env
+```
+
+Required variables:
+
+- `VITE_SUPABASE_URL`: Supabase project URL
+- `VITE_SUPABASE_ANON_KEY`: Supabase anon key
+
+If one of these values is missing, authentication-related features may not work correctly.
+
+## Local Setup Checklist
+
+1. Install dependencies: `npm install`
+2. Create `.env` from `.env.example`
+3. Run app: `npm run dev`
+4. Quality check before PR: `npm run lint` and `npm run build`
