@@ -115,7 +115,7 @@ export default function AuthModal({
               placeholder="비밀번호"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              minLength={4}
+              minLength={mode === "signup" ? 6 : 4}
               className="w-full px-4 py-3 bg-[#1a1a1a] border border-slate-700 rounded text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
             />
           </div>
