@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
+import { LoadingScreen } from "../components/StateCards";
 import { useAuth } from "../store/authStore";
 import {
   getProtectedRouteAction,
@@ -8,12 +9,11 @@ import {
 
 function AuthLoadingScreen() {
   return (
-    <div
-      data-testid="auth-loading-screen"
-      className="min-h-screen flex items-center justify-center text-slate-500"
-    >
-      인증 상태를 확인하는 중...
-    </div>
+    <LoadingScreen
+      testId="auth-loading-screen"
+      title="인증 상태 확인 중"
+      description="잠시만 기다려 주세요. 안전하게 인증 상태를 확인하고 있습니다."
+    />
   );
 }
 
