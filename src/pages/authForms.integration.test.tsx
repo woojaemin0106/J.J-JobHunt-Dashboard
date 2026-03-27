@@ -7,6 +7,7 @@ import { ERROR_MESSAGES } from "../utils/errorMessages";
 
 const loginMock = vi.fn();
 const signupMock = vi.fn();
+const continueAsGuestMock = vi.fn();
 
 let mockSupabaseConfigured = true;
 const mockDemoConfig = {
@@ -20,6 +21,7 @@ vi.mock("../store/authStore", () => ({
   useAuthActions: () => ({
     login: (...args: unknown[]) => loginMock(...args),
     signup: (...args: unknown[]) => signupMock(...args),
+    continueAsGuest: (...args: unknown[]) => continueAsGuestMock(...args),
   }),
 }));
 
@@ -61,6 +63,7 @@ describe("Auth forms integration", () => {
   beforeEach(() => {
     loginMock.mockReset();
     signupMock.mockReset();
+    continueAsGuestMock.mockReset();
     loginMock.mockResolvedValue(true);
     signupMock.mockResolvedValue(true);
     mockSupabaseConfigured = true;

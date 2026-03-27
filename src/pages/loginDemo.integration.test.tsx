@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Login from "./Login";
 
 const loginMock = vi.fn();
+const continueAsGuestMock = vi.fn();
 let mockSupabaseConfigured = true;
 const mockDemoConfig = {
   enabled: true,
@@ -15,6 +16,7 @@ const mockDemoConfig = {
 vi.mock("../store/authStore", () => ({
   useAuthActions: () => ({
     login: (...args: unknown[]) => loginMock(...args),
+    continueAsGuest: (...args: unknown[]) => continueAsGuestMock(...args),
   }),
 }));
 
@@ -45,6 +47,7 @@ describe("Login demo mode integration", () => {
   beforeEach(() => {
     loginMock.mockReset();
     loginMock.mockResolvedValue(true);
+    continueAsGuestMock.mockReset();
     mockSupabaseConfigured = true;
     mockDemoConfig.enabled = true;
     mockDemoConfig.email = "demo@example.com";
@@ -63,11 +66,21 @@ describe("Login demo mode integration", () => {
     expect(await screen.findByTestId("home-route")).toBeInTheDocument();
   });
 
+  it("always shows one-click guest login and redirects", async () => {
+    renderLogin();
+
+    fireEvent.click(screen.getByTestId("guest-login-button"));
+
+    expect(continueAsGuestMock).toHaveBeenCalledTimes(1);
+    expect(await screen.findByTestId("home-route")).toBeInTheDocument();
+  });
+
   it("hides demo login button when demo config is unavailable", () => {
     mockDemoConfig.isVisible = false;
 
     renderLogin();
 
+    expect(screen.getByTestId("guest-login-button")).toBeInTheDocument();
     expect(screen.queryByTestId("demo-login-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("demo-login-notice")).not.toBeInTheDocument();
   });
