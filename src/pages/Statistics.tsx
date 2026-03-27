@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { EmptyStateCard } from "../components/StateCards";
 import { ui } from "../utils/ui";
 import { useApplications } from "../store/applicationStore";
 import type { Application } from "../types/application";
@@ -36,6 +38,7 @@ function monthLabel(monthKey: string) {
 }
 
 export default function Statistics() {
+  const navigate = useNavigate();
   const applications = useApplications();
 
   const stats = useMemo(() => {
@@ -95,6 +98,36 @@ export default function Statistics() {
 
   const maxDistribution = Math.max(...distributionRows.map((row) => row.count), 1);
   const maxMonthlyCount = Math.max(...stats.monthlyRows.map((row) => row.count), 1);
+
+  if (stats.total === 0) {
+    return (
+      <div className="space-y-6">
+        <section className="rounded-3xl border border-slate-200/70 bg-gradient-to-r from-indigo-900 to-blue-900 p-6 text-white shadow-[var(--jj-shadow-soft)]">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-200">
+                Performance analytics
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
+                취업 준비 진행률을 숫자로 확인해보세요
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm text-indigo-100/95">
+                지원 데이터가 쌓이면 상태 분포와 월별 추이를 한눈에 확인할 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <EmptyStateCard
+          title="아직 통계를 만들 데이터가 없습니다"
+          description="지원 현황에서 첫 공고를 추가하면 통계 대시보드가 자동으로 채워집니다."
+          actionLabel="지원 현황으로 이동"
+          onAction={() => navigate("/applications")}
+          testId="statistics-empty-state"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
