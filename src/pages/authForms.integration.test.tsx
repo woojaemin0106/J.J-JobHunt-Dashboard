@@ -102,6 +102,35 @@ describe("Auth forms integration", () => {
     expect(passwordInput).toHaveAttribute("type", "password");
   });
 
+  it("shows login loading feedback while request is pending", async () => {
+    let resolveLogin!: (value: boolean) => void;
+    loginMock.mockImplementation(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveLogin = resolve;
+        })
+    );
+
+    renderLoginRoute();
+
+    fireEvent.change(screen.getByTestId("login-email-input"), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(screen.getByTestId("login-password-input"), {
+      target: { value: "pass1234" },
+    });
+
+    fireEvent.click(screen.getByTestId("login-submit-button"));
+
+    const submitButton = screen.getByTestId("login-submit-button");
+    expect(submitButton).toHaveTextContent("로그인 중...");
+    expect(submitButton).toHaveAttribute("aria-busy", "true");
+
+    resolveLogin(true);
+
+    expect(await screen.findByTestId("home-route")).toBeInTheDocument();
+  });
+
   it("shows live login input hints for email and password format", () => {
     renderLoginRoute();
 
@@ -179,6 +208,35 @@ describe("Auth forms integration", () => {
 
     fireEvent.click(screen.getByTestId("signup-toggle-password"));
     expect(passwordInput).toHaveAttribute("type", "password");
+  });
+
+  it("shows signup loading feedback while request is pending", async () => {
+    let resolveSignup!: (value: boolean) => void;
+    signupMock.mockImplementation(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveSignup = resolve;
+        })
+    );
+
+    renderSignupRoute();
+
+    fireEvent.change(screen.getByTestId("signup-email-input"), {
+      target: { value: "demo@example.com" },
+    });
+    fireEvent.change(screen.getByTestId("signup-password-input"), {
+      target: { value: "password123" },
+    });
+
+    fireEvent.click(screen.getByTestId("signup-submit-button"));
+
+    const submitButton = screen.getByTestId("signup-submit-button");
+    expect(submitButton).toHaveTextContent("가입 처리 중...");
+    expect(submitButton).toHaveAttribute("aria-busy", "true");
+
+    resolveSignup(true);
+
+    expect(await screen.findByTestId("home-route")).toBeInTheDocument();
   });
 
   it("shows signup password strength feedback while typing", () => {
