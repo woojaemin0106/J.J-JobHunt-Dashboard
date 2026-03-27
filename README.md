@@ -1,102 +1,128 @@
 # J.J JobHunt Dashboard
 
-취업 준비 과정을 한 화면에서 관리하는 대시보드(지원 현황 / 일정 / 이력서 버전 / 면접 준비).
+면접장에서 바로 시연 가능한 취업 준비 대시보드입니다.  
+지원 현황, 이력서 버전, 메모, 통계를 한 흐름으로 관리할 수 있도록 설계했습니다.
 
-## Demo
+## 1) 프로젝트 요약
 
-- Live: (배포 후 추가)
-- Figma/Notion: (있으면 추가)
+- 핵심 목표: "5분 안에 핵심 플로우를 보여주는 안정적인 데모"
+- 핵심 사용자: 취업 준비생(Primary), 리뷰어/면접관(Secondary)
+- 운영 기준 문서:
+  - [프로젝트 정책 문서](docs/00_PROJECT_BLUEPRINT.md)
+  - [실행 가이드 문서](docs/01_EXECUTION_GUIDE.md)
 
-## Features (MVP)
+## 2) 핵심 기능
 
-- 지원 파이프라인(칸반): 관심 → 지원 → 과제 → 면접 → 결과
-- 지원 카드 CRUD: 회사/직무/마감일/D-day/메모/링크
-- 주간 요약: 이번 주 마감/면접/할 일
+- 인증
+  - 일반 로그인/회원가입
+  - 게스트 원클릭 로그인
+  - 데모 계정 원클릭 로그인(환경변수 활성화 시)
+- 지원서 관리
+  - 지원서 CRUD
+  - 상태 전환(writing/submitted/passed/failed)
+  - URL 기반 검색/필터
+- 이력서 버전 관리
+  - 지원서별 버전 CRUD
+- 메모/할 일
+  - 메모 CRUD
+  - 오늘 할 일 CRUD
+- 통계
+  - 상태 분포, 월별 추이, 핵심 지표 요약
 
-## Tech Stack
+## 3) 데모 시연(면접관용)
 
-- React + TypeScript + Vite
-- TailwindCSS
-- (예정) Supabase / Firebase
-- (예정) TanStack Query, React Hook Form
+- 빠른 실행:
+  1. 로그인 화면 진입
+  2. `게스트로 바로 입장` 또는 `데모로 바로 보기`
+  3. 홈의 `Interview demo quick flow` 패널에서
+     - 지원 현황
+     - 메모
+     - 통계
+       순서로 이동
 
-## Getting Started
+- 자세한 스크립트:
+  - [5분 데모 런북](docs/03_INTERVIEW_DEMO_RUNBOOK.md)
+
+## 4) 기술 스택
+
+- Frontend: React 19, TypeScript, Vite
+- Styling: Tailwind CSS v4
+- Auth/Backend: Supabase Auth
+- Test: Vitest, React Testing Library, Playwright
+- CI: GitHub Actions (`lint`, `unit`, `integration`, `build`, `e2e-smoke`, `coverage`)
+- AI Workflow: PR AI Review(비차단 리포트)
+
+## 5) 품질 게이트
+
+- 로컬 필수 검증:
+  - `npm run lint`
+  - `npm run test:integration`
+  - `npm run build`
+
+- CI 필수 게이트:
+  - `lint`
+  - `unit`
+  - `integration`
+  - `build`
+  - `e2e-smoke`
+
+- 커버리지:
+  - `npm run test:coverage`
+  - 글로벌 임계값 70%
+
+## 6) 로컬 실행
 
 ```bash
 npm install
 npm run dev
 ```
 
-Conventions
+브라우저에서 `http://localhost:5173` 접속
 
-Branch: main(release) / dev(integration) / feat/\*(feature)
+## 7) 환경 변수
 
-Commit message: feat:, fix:, refactor:, docs:, chore:
-
-PR: dev로만 머지, 스크린샷/테스트 방법 포함
-
-Roadmap
-
-로그인/유저별 데이터 분리
-
-이력서 버전 관리
-
-면접 Q&A 라이브러리
-
-통계(지원률/진행률) & 캘린더 연동
-
-Team
-
-[우재민] (Frontend)
-
-[김재윤] (Frontend)
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and fill your values.
+`.env.example`를 복사해 `.env`를 생성합니다.
 
 ```bash
 cp .env.example .env
 ```
 
-Required variables:
+필수:
 
-- `VITE_SUPABASE_URL`: Supabase project URL
-- `VITE_SUPABASE_ANON_KEY`: Supabase anon key
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
-If one of these values is missing, authentication-related features may not work correctly.
+데모 로그인(선택):
 
-## Local Setup Checklist
+- `VITE_DEMO_ENABLED=true|false`
+- `VITE_DEMO_EMAIL`
+- `VITE_DEMO_PASSWORD`
 
-1. Install dependencies: `npm install`
-2. Create `.env` from `.env.example`
-3. Run app: `npm run dev`
-4. Quality check before PR: `npm run lint` and `npm run build`
+`VITE_DEMO_ENABLED=true` + 이메일/비밀번호가 모두 설정된 경우에만  
+`데모로 바로 보기` 버튼이 노출됩니다.
 
-## Test Commands
+## 8) 테스트 명령어
 
-- `npm run test:unit`: unit and policy tests
-- `npm run test:integration`: provider/router integration tests
-- `npm run test:coverage`: full coverage report (global threshold 70%)
-- `npm run test:e2e:smoke`: Playwright smoke flow
+```bash
+npm run test:unit
+npm run test:integration
+npm run test:coverage
+npm run test:e2e:smoke
+```
 
-## Demo Login Mode
+## 9) 브랜치 전략
 
-Optional environment variables for one-click interview demo login:
+- `main`: production
+- `dev`: integration baseline
+- `feat/*`: feature branches
 
-- `VITE_DEMO_ENABLED`: `true` or `false`
-- `VITE_DEMO_EMAIL`: demo account email
-- `VITE_DEMO_PASSWORD`: demo account password
+머지 정책: 커밋 이력 보존(스쿼시 금지)
 
-Demo button is shown only when all three values are valid.
+## 10) 포트폴리오 증빙 문서
 
-## AI Review Workflow
+- [포트폴리오 증빙 패키지](docs/02_PORTFOLIO_PROOF_PACK.md)
+- [5분 데모 런북](docs/03_INTERVIEW_DEMO_RUNBOOK.md)
 
-Repository includes `.github/workflows/ai-review.yml` for automated AI PR review.
+---
 
-- Auto trigger: PR opened / synchronized / reopened
-- Manual trigger: comment `/ai-review` on a PR
-- Required secret: `OPENAI_API_KEY`
-- Optional repository variable: `OPENAI_MODEL` (default: `gpt-5.4-mini`)
-
-If API fails, workflow posts a skip report and does not block core quality gates.
+문의나 리뷰 포인트는 이슈/PR 코멘트로 남겨주세요.
