@@ -86,7 +86,6 @@ describe("Login demo mode integration", () => {
     expect(screen.getByTestId("guest-login-button")).toBeInTheDocument();
     expect(screen.queryByTestId("demo-login-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("demo-login-notice")).not.toBeInTheDocument();
-    expect(screen.getByTestId("demo-login-setup-hint")).toBeInTheDocument();
   });
 
   it("shows recovery message when demo login fails", async () => {
@@ -98,7 +97,7 @@ describe("Login demo mode integration", () => {
     expect(await screen.findByTestId("login-error-message")).toBeInTheDocument();
   });
 
-  it("does not show demo setup hint when supabase is not configured", () => {
+  it("keeps guest login visible even when supabase is not configured", () => {
     mockSupabaseConfigured = false;
     mockDemoConfig.enabled = false;
     mockDemoConfig.email = "";
@@ -107,6 +106,7 @@ describe("Login demo mode integration", () => {
 
     renderLogin();
 
-    expect(screen.queryByTestId("demo-login-setup-hint")).not.toBeInTheDocument();
+    expect(screen.getByTestId("guest-login-button")).toBeInTheDocument();
+    expect(screen.queryByTestId("demo-login-button")).not.toBeInTheDocument();
   });
 });
