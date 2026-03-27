@@ -8,7 +8,10 @@ import {
 
 function AuthLoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center text-slate-500">
+    <div
+      data-testid="auth-loading-screen"
+      className="min-h-screen flex items-center justify-center text-slate-500"
+    >
       인증 상태를 확인하는 중...
     </div>
   );

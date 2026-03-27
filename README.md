@@ -72,3 +72,31 @@ If one of these values is missing, authentication-related features may not work 
 2. Create `.env` from `.env.example`
 3. Run app: `npm run dev`
 4. Quality check before PR: `npm run lint` and `npm run build`
+
+## Test Commands
+
+- `npm run test:unit`: unit and policy tests
+- `npm run test:integration`: provider/router integration tests
+- `npm run test:coverage`: full coverage report (global threshold 70%)
+- `npm run test:e2e:smoke`: Playwright smoke flow
+
+## Demo Login Mode
+
+Optional environment variables for one-click interview demo login:
+
+- `VITE_DEMO_ENABLED`: `true` or `false`
+- `VITE_DEMO_EMAIL`: demo account email
+- `VITE_DEMO_PASSWORD`: demo account password
+
+Demo button is shown only when all three values are valid.
+
+## AI Review Workflow
+
+Repository includes `.github/workflows/ai-review.yml` for automated AI PR review.
+
+- Auto trigger: PR opened / synchronized / reopened
+- Manual trigger: comment `/ai-review` on a PR
+- Required secret: `OPENAI_API_KEY`
+- Optional repository variable: `OPENAI_MODEL` (default: `gpt-5.4-mini`)
+
+If API fails, workflow posts a skip report and does not block core quality gates.

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthActions } from "../store/authStore";
 import { isSupabaseConfigured } from "../supabase/supabase";
+import { demoAuthConfig } from "../config/demoAuth";
 import { ERROR_MESSAGES } from "../utils/errorMessages";
 import { ui } from "../utils/ui";
 
@@ -12,6 +13,28 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuthActions();
+  const isDemoLoginVisible = isSupabaseConfigured && demoAuthConfig.isVisible;
+
+  const attemptLogin = async (
+    nextEmail: string,
+    nextPassword: string,
+    fallbackMessage: string
+  ) => {
+    setIsLoading(true);
+
+    try {
+      const success = await login(nextEmail, nextPassword);
+      if (success) {
+        navigate("/");
+      } else {
+        setError(fallbackMessage);
+      }
+    } catch {
+      setError(ERROR_MESSAGES.auth.retry);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -22,24 +45,23 @@ export default function Login() {
       return;
     }
 
-    setIsLoading(true);
+    await attemptLogin(email, password, ERROR_MESSAGES.auth.invalidCredentials);
+  };
 
-    try {
-      const success = await login(email, password);
-      if (success) {
-        navigate("/");
-      } else {
-        setError(ERROR_MESSAGES.auth.invalidCredentials);
-      }
-    } catch {
-      setError(ERROR_MESSAGES.auth.retry);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleDemoLogin = async () => {
+    setError("");
+
+    if (!isDemoLoginVisible) return;
+
+    await attemptLogin(
+      demoAuthConfig.email,
+      demoAuthConfig.password,
+      ERROR_MESSAGES.auth.demoLoginFailed
+    );
   };
 
   return (
-    <div className={ui.page}>
+    <div className={ui.page} data-testid="login-page">
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="w-full max-w-md">
           <div className={ui.card}>
@@ -52,7 +74,7 @@ export default function Login() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
               <div>
                 <input
                   type="email"
@@ -77,7 +99,11 @@ export default function Login() {
               </div>
 
               {error && (
-                <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl p-3">
+                <div
+                  role="alert"
+                  data-testid="login-error-message"
+                  className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl p-3"
+                >
                   {error}
                 </div>
               )}
@@ -91,16 +117,38 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading || !isSupabaseConfigured}
+                data-testid="login-submit-button"
                 className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "처리 중..." : "로그인"}
               </button>
             </form>
 
+            {isDemoLoginVisible && (
+              <div
+                className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4"
+                data-testid="demo-login-notice"
+              >
+                <p className="text-sm text-slate-600">
+                  이 계정은 면접 데모용이며, 비민감 샘플 데이터만 포함합니다.
+                </p>
+                <button
+                  type="button"
+                  data-testid="demo-login-button"
+                  disabled={isLoading}
+                  onClick={handleDemoLogin}
+                  className={`${ui.btnSecondary} w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  데모로 바로 보기
+                </button>
+              </div>
+            )}
+
             <div className="mt-6 text-center">
               <p className="text-slate-500 text-sm">JOBFLUX가 처음이신가요?</p>
               <Link
                 to="/signup"
+                data-testid="go-signup-link"
                 className="text-indigo-600 hover:text-indigo-700 hover:underline mt-2 inline-block text-sm font-medium"
               >
                 회원가입

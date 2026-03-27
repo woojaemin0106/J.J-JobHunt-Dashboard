@@ -105,6 +105,7 @@ export default function Applications() {
             </label>
             <select
               id="status-filter"
+              data-testid="applications-status-filter"
               className={`${ui.input} sm:w-48`}
               value={statusFilter}
               onChange={handleStatusFilterChange}
@@ -116,6 +117,7 @@ export default function Applications() {
               <option value="failed">불합격</option>
             </select>
             <button
+              data-testid="applications-clear-filters"
               className={`${ui.btnSecondary} ${
                 hasActiveFilters ? "" : "cursor-not-allowed opacity-60"
               }`}
@@ -126,7 +128,7 @@ export default function Applications() {
             </button>
           </div>
 
-          <div className="text-sm text-slate-600">
+          <div className="text-sm text-slate-600" data-testid="applications-count">
             {filteredApplications.length} / {applications.length}건 표시
           </div>
         </div>
