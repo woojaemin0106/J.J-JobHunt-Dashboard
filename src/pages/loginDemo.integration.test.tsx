@@ -64,12 +64,16 @@ describe("Login demo mode integration", () => {
   });
 
   it("hides demo login button when demo config is unavailable", () => {
+    mockDemoConfig.enabled = false;
+    mockDemoConfig.email = "";
+    mockDemoConfig.password = "";
     mockDemoConfig.isVisible = false;
 
     renderLogin();
 
     expect(screen.queryByTestId("demo-login-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("demo-login-notice")).not.toBeInTheDocument();
+    expect(screen.getByTestId("demo-login-setup-hint")).toBeInTheDocument();
   });
 
   it("shows recovery message when demo login fails", async () => {
@@ -79,5 +83,17 @@ describe("Login demo mode integration", () => {
     fireEvent.click(screen.getByTestId("demo-login-button"));
 
     expect(await screen.findByTestId("login-error-message")).toBeInTheDocument();
+  });
+
+  it("does not show demo setup hint when supabase is not configured", () => {
+    mockSupabaseConfigured = false;
+    mockDemoConfig.enabled = false;
+    mockDemoConfig.email = "";
+    mockDemoConfig.password = "";
+    mockDemoConfig.isVisible = false;
+
+    renderLogin();
+
+    expect(screen.queryByTestId("demo-login-setup-hint")).not.toBeInTheDocument();
   });
 });
