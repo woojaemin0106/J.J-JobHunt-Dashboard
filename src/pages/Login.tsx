@@ -8,11 +8,13 @@ import { ui } from "../utils/ui";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuthActions();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuthActions();
+
   const isDemoLoginVisible = isSupabaseConfigured && demoAuthConfig.isVisible;
 
   const attemptLogin = async (
@@ -36,8 +38,8 @@ export default function Login() {
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     setError("");
 
     if (!isSupabaseConfigured) {
@@ -45,12 +47,15 @@ export default function Login() {
       return;
     }
 
-    await attemptLogin(email, password, ERROR_MESSAGES.auth.invalidCredentials);
+    await attemptLogin(
+      email.trim(),
+      password,
+      ERROR_MESSAGES.auth.invalidCredentials
+    );
   };
 
   const handleDemoLogin = async () => {
     setError("");
-
     if (!isDemoLoginVisible) return;
 
     await attemptLogin(
@@ -62,100 +67,139 @@ export default function Login() {
 
   return (
     <div className={ui.page} data-testid="login-page">
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          <div className={ui.card}>
-            <div className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-                로그인
-              </h1>
-              <p className="text-slate-500 text-base">
-                JOBFLUX에 오신 것을 환영합니다
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
-              <div>
-                <input
-                  type="email"
-                  required
-                  placeholder="이메일 주소"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={ui.input}
-                />
+      <div className="mx-auto grid min-h-screen w-full max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
+        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/70 bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-800 p-6 text-white shadow-[var(--jj-shadow-soft)] sm:p-8">
+          <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-cyan-300/20 blur-2xl" />
+          <div className="absolute -left-14 bottom-0 h-36 w-36 rounded-full bg-blue-300/20 blur-2xl" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-200">
+              Interview demo mode
+            </p>
+            <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+              5분 안에 핵심 흐름을 보여주는 취업 준비 대시보드
+            </h1>
+            <p className="mt-3 max-w-xl text-sm text-cyan-100/95 sm:text-base">
+              로그인 후 지원 현황, 이력서 버전, 메모, 통계를 한 번에 탐색할 수
+              있습니다. 면접 데모 동선에 맞춰 화면을 최적화했습니다.
+            </p>
+            <div className="mt-6 grid gap-2 text-sm text-cyan-50/95">
+              <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2">
+                1. 로그인 또는 데모 계정으로 즉시 진입
               </div>
-
-              <div>
-                <input
-                  type="password"
-                  required
-                  placeholder="비밀번호"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  minLength={4}
-                  className={ui.input}
-                />
+              <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2">
+                2. 지원 현황 보드에서 진행 상태 확인
               </div>
-
-              {error && (
-                <div
-                  role="alert"
-                  data-testid="login-error-message"
-                  className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl p-3"
-                >
-                  {error}
-                </div>
-              )}
-
-              {!isSupabaseConfigured && !error && (
-                <div className="text-amber-700 text-sm bg-amber-50 border border-amber-200 rounded-xl p-3">
-                  {ERROR_MESSAGES.auth.serviceUnavailable}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isLoading || !isSupabaseConfigured}
-                data-testid="login-submit-button"
-                className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? "처리 중..." : "로그인"}
-              </button>
-            </form>
-
-            {isDemoLoginVisible && (
-              <div
-                className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4"
-                data-testid="demo-login-notice"
-              >
-                <p className="text-sm text-slate-600">
-                  이 계정은 면접 데모용이며, 비민감 샘플 데이터만 포함합니다.
-                </p>
-                <button
-                  type="button"
-                  data-testid="demo-login-button"
-                  disabled={isLoading}
-                  onClick={handleDemoLogin}
-                  className={`${ui.btnSecondary} w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  데모로 바로 보기
-                </button>
+              <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2">
+                3. 이력서/메모/통계 화면으로 관리 역량 증명
               </div>
-            )}
-
-            <div className="mt-6 text-center">
-              <p className="text-slate-500 text-sm">JOBFLUX가 처음이신가요?</p>
-              <Link
-                to="/signup"
-                data-testid="go-signup-link"
-                className="text-indigo-600 hover:text-indigo-700 hover:underline mt-2 inline-block text-sm font-medium"
-              >
-                회원가입
-              </Link>
             </div>
           </div>
-        </div>
+        </section>
+
+        <section className={`${ui.card} self-center p-6 sm:p-7`}>
+          <div className="mb-6">
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+              로그인
+            </h2>
+            <p className="mt-2 text-sm text-slate-500">
+              계정 정보로 로그인해 개인 대시보드를 이어서 사용하세요.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
+            <div className="space-y-1.5">
+              <label htmlFor="login-email" className="text-xs font-semibold text-slate-600">
+                이메일
+              </label>
+              <input
+                id="login-email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className={ui.input}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="login-password"
+                className="text-xs font-semibold text-slate-600"
+              >
+                비밀번호
+              </label>
+              <input
+                id="login-password"
+                type="password"
+                required
+                minLength={4}
+                autoComplete="current-password"
+                placeholder="비밀번호를 입력하세요"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className={ui.input}
+              />
+            </div>
+
+            {error ? (
+              <div
+                role="alert"
+                data-testid="login-error-message"
+                className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
+              >
+                {error}
+              </div>
+            ) : null}
+
+            {!isSupabaseConfigured && !error ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+                {ERROR_MESSAGES.auth.serviceUnavailable}
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={isLoading || !isSupabaseConfigured}
+              data-testid="login-submit-button"
+              className={`${ui.btnPrimary} w-full disabled:cursor-not-allowed disabled:opacity-60`}
+            >
+              {isLoading ? "로그인 중..." : "로그인"}
+            </button>
+          </form>
+
+          {isDemoLoginVisible ? (
+            <div
+              className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4"
+              data-testid="demo-login-notice"
+            >
+              <p className="text-sm text-slate-600">
+                데모 계정은 면접 시연 전용이며 비민감 샘플 데이터만 포함합니다.
+              </p>
+              <button
+                type="button"
+                data-testid="demo-login-button"
+                disabled={isLoading}
+                onClick={handleDemoLogin}
+                className={`${ui.btnSecondary} w-full justify-center disabled:cursor-not-allowed disabled:opacity-60`}
+              >
+                데모로 바로 보기
+              </button>
+            </div>
+          ) : null}
+
+          <div className="mt-6 border-t border-slate-100 pt-4 text-center">
+            <p className="text-sm text-slate-500">아직 계정이 없다면 회원가입을 진행하세요.</p>
+            <Link
+              to="/signup"
+              data-testid="go-signup-link"
+              className="mt-2 inline-block text-sm font-semibold text-[color:var(--jj-color-brand)] hover:underline"
+            >
+              회원가입으로 이동
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );
