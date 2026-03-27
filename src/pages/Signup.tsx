@@ -5,6 +5,31 @@ import { isSupabaseConfigured } from "../supabase/supabase";
 import { ERROR_MESSAGES } from "../utils/errorMessages";
 import { ui } from "../utils/ui";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function getPasswordScore(password: string): number {
+  if (!password) return 0;
+
+  let score = 0;
+  if (password.length >= 8) score += 1;
+  if (/[a-z]/i.test(password) && /\d/.test(password)) score += 1;
+  if (/[^a-z0-9]/i.test(password)) score += 1;
+
+  return Math.min(score, 3);
+}
+
+function getPasswordTone(score: number): string {
+  if (score <= 1) return "text-rose-700";
+  if (score === 2) return "text-amber-700";
+  return "text-emerald-700";
+}
+
+function getPasswordLabel(score: number): string {
+  if (score <= 1) return "Weak";
+  if (score === 2) return "Fair";
+  return "Strong";
+}
+
 export default function Signup() {
   const navigate = useNavigate();
   const { signup } = useAuthActions();
@@ -15,6 +40,15 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const trimmedEmail = email.trim();
+  const isEmailDirty = trimmedEmail.length > 0;
+  const isEmailValid = EMAIL_PATTERN.test(trimmedEmail);
+  const passwordScore = getPasswordScore(password);
+  const passwordTone = getPasswordTone(passwordScore);
+  const passwordLabel = getPasswordLabel(passwordScore);
+  const hasMinLength = password.length >= 6;
+  const hasMixedChars = /[a-z]/i.test(password) && /\d/.test(password);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -76,14 +110,32 @@ export default function Signup() {
               </label>
               <input
                 id="signup-email"
+                data-testid="signup-email-input"
                 type="email"
                 required
                 autoComplete="email"
                 placeholder="name@example.com"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                aria-invalid={isEmailDirty && !isEmailValid}
                 className={ui.input}
               />
+              <p
+                data-testid="signup-email-hint"
+                className={`text-xs ${
+                  isEmailDirty
+                    ? isEmailValid
+                      ? "text-emerald-700"
+                      : "text-amber-700"
+                    : "text-slate-500"
+                }`}
+              >
+                {isEmailDirty
+                  ? isEmailValid
+                    ? "Valid email format."
+                    : "Please check email format."
+                  : "Use a reachable email for account recovery."}
+              </p>
             </div>
 
             <div className="space-y-1.5">
@@ -103,8 +155,33 @@ export default function Signup() {
                 placeholder="6자 이상 입력하세요"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                aria-invalid={password.length > 0 && !hasMinLength}
                 className={ui.input}
               />
+              <div className="space-y-2" data-testid="signup-password-strength">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">Password strength</span>
+                  <span className={`text-xs font-semibold ${passwordTone}`}>
+                    {password ? passwordLabel : "Enter password"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1">
+                  {[1, 2, 3].map((step) => (
+                    <div
+                      key={step}
+                      className={`h-1.5 rounded-full ${
+                        passwordScore >= step ? "bg-emerald-500" : "bg-slate-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="flex gap-3 text-[11px] text-slate-500">
+                  <span className={hasMinLength ? "text-emerald-700" : ""}>6+ chars</span>
+                  <span className={hasMixedChars ? "text-emerald-700" : ""}>
+                    letters + numbers
+                  </span>
+                </div>
+              </div>
               <div className="flex justify-end">
                 <button
                   type="button"

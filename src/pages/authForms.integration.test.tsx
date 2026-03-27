@@ -102,6 +102,38 @@ describe("Auth forms integration", () => {
     expect(passwordInput).toHaveAttribute("type", "password");
   });
 
+  it("shows live login input hints for email and password format", () => {
+    renderLoginRoute();
+
+    expect(screen.getByTestId("login-email-hint")).toHaveTextContent(
+      "Use your account email."
+    );
+    expect(screen.getByTestId("login-password-hint")).toHaveTextContent(
+      "Password must be at least 4 characters."
+    );
+
+    const emailInput = screen.getByTestId("login-email-input");
+    const passwordInput = screen.getByTestId("login-password-input");
+
+    fireEvent.change(emailInput, { target: { value: "bad-email" } });
+    fireEvent.change(passwordInput, { target: { value: "12" } });
+
+    expect(screen.getByTestId("login-email-hint")).toHaveTextContent(
+      "Please check email format."
+    );
+    expect(screen.getByTestId("login-password-hint")).toHaveTextContent(
+      "At least 4 characters required."
+    );
+
+    fireEvent.change(emailInput, { target: { value: "good@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "1234" } });
+
+    expect(screen.getByTestId("login-email-hint")).toHaveTextContent("Valid email format.");
+    expect(screen.getByTestId("login-password-hint")).toHaveTextContent(
+      "Password length looks good."
+    );
+  });
+
   it("shows service unavailable guidance when supabase is not configured", () => {
     mockSupabaseConfigured = false;
     renderLoginRoute();
@@ -147,6 +179,22 @@ describe("Auth forms integration", () => {
 
     fireEvent.click(screen.getByTestId("signup-toggle-password"));
     expect(passwordInput).toHaveAttribute("type", "password");
+  });
+
+  it("shows signup password strength feedback while typing", () => {
+    renderSignupRoute();
+
+    const passwordInput = screen.getByTestId("signup-password-input");
+
+    expect(screen.getByTestId("signup-password-strength")).toHaveTextContent(
+      "Enter password"
+    );
+
+    fireEvent.change(passwordInput, { target: { value: "abc123" } });
+    expect(screen.getByTestId("signup-password-strength")).toHaveTextContent("Weak");
+
+    fireEvent.change(passwordInput, { target: { value: "Abcd1234!" } });
+    expect(screen.getByTestId("signup-password-strength")).toHaveTextContent("Strong");
   });
 
   it("shows recovery message when signup fails", async () => {
