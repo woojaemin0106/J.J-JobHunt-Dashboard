@@ -89,7 +89,12 @@ export default function Signup() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4" data-testid="signup-form">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            data-testid="signup-form"
+            aria-busy={isLoading}
+          >
             <div className="space-y-1.5">
               <label htmlFor="signup-name" className="text-xs font-semibold text-slate-600">
                 이름 (선택)
@@ -189,7 +194,7 @@ export default function Signup() {
                   data-testid="signup-toggle-password"
                   aria-label={isPasswordVisible ? "Hide password" : "Show password"}
                   onClick={() => setIsPasswordVisible((prev) => !prev)}
-                  className="text-xs font-semibold text-slate-500 transition hover:text-slate-900"
+                  className={ui.actionText}
                 >
                   {isPasswordVisible ? "Hide" : "Show"}
                 </button>
@@ -212,9 +217,20 @@ export default function Signup() {
               type="submit"
               data-testid="signup-submit-button"
               disabled={isLoading || !isSupabaseConfigured}
-              className={`${ui.btnPrimary} w-full disabled:cursor-not-allowed disabled:opacity-60`}
+              aria-busy={isLoading}
+              className={`${ui.btnPrimary} w-full`}
             >
-              {isLoading ? "가입 처리 중..." : "회원가입"}
+              {isLoading ? (
+                <>
+                  <span
+                    className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                    aria-hidden="true"
+                  />
+                  가입 처리 중...
+                </>
+              ) : (
+                "회원가입"
+              )}
             </button>
           </form>
 
@@ -223,7 +239,7 @@ export default function Signup() {
             <Link
               to="/login"
               data-testid="go-login-link"
-              className="mt-2 inline-block text-sm font-semibold text-[color:var(--jj-color-brand)] hover:underline"
+              className={`${ui.actionText} mt-2 text-sm text-[color:var(--jj-color-brand)] hover:bg-[color:var(--jj-color-brand)]/10`}
             >
               로그인으로 이동
             </Link>

@@ -121,7 +121,12 @@ export default function Login() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            data-testid="login-form"
+            aria-busy={isLoading}
+          >
             <div className="space-y-1.5">
               <label htmlFor="login-email" className="text-xs font-semibold text-slate-600">
                 이메일
@@ -199,7 +204,7 @@ export default function Login() {
                   data-testid="login-toggle-password"
                   aria-label={isPasswordVisible ? "Hide password" : "Show password"}
                   onClick={() => setIsPasswordVisible((prev) => !prev)}
-                  className="text-xs font-semibold text-slate-500 transition hover:text-slate-900"
+                  className={ui.actionText}
                 >
                   {isPasswordVisible ? "Hide" : "Show"}
                 </button>
@@ -222,9 +227,20 @@ export default function Login() {
               type="submit"
               disabled={isLoading || !isSupabaseConfigured}
               data-testid="login-submit-button"
-              className={`${ui.btnPrimary} w-full disabled:cursor-not-allowed disabled:opacity-60`}
+              aria-busy={isLoading}
+              className={`${ui.btnPrimary} w-full`}
             >
-              {isLoading ? "로그인 중..." : "로그인"}
+              {isLoading ? (
+                <>
+                  <span
+                    className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                    aria-hidden="true"
+                  />
+                  로그인 중...
+                </>
+              ) : (
+                "로그인"
+              )}
             </button>
           </form>
 
@@ -240,7 +256,7 @@ export default function Login() {
               data-testid="guest-login-button"
               disabled={isLoading}
               onClick={handleGuestLogin}
-              className={`${ui.btnSecondary} w-full justify-center disabled:cursor-not-allowed disabled:opacity-60`}
+              className={`${ui.btnSecondary} w-full justify-center`}
             >
               게스트로 바로 입장
             </button>
@@ -259,7 +275,7 @@ export default function Login() {
                 data-testid="demo-login-button"
                 disabled={isLoading}
                 onClick={handleDemoLogin}
-                className={`${ui.btnSecondary} w-full justify-center disabled:cursor-not-allowed disabled:opacity-60`}
+                className={`${ui.btnSecondary} w-full justify-center`}
               >
                 데모로 바로 보기
               </button>
@@ -271,7 +287,7 @@ export default function Login() {
             <Link
               to="/signup"
               data-testid="go-signup-link"
-              className="mt-2 inline-block text-sm font-semibold text-[color:var(--jj-color-brand)] hover:underline"
+              className={`${ui.actionText} mt-2 text-sm text-[color:var(--jj-color-brand)] hover:bg-[color:var(--jj-color-brand)]/10`}
             >
               회원가입으로 이동
             </Link>
