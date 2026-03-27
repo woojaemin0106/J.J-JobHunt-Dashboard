@@ -12,6 +12,7 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -122,6 +123,7 @@ export default function Login() {
                 type="email"
                 required
                 autoComplete="email"
+                autoFocus
                 placeholder="name@example.com"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
@@ -138,7 +140,8 @@ export default function Login() {
               </label>
               <input
                 id="login-password"
-                type="password"
+                data-testid="login-password-input"
+                type={isPasswordVisible ? "text" : "password"}
                 required
                 minLength={4}
                 autoComplete="current-password"
@@ -147,11 +150,23 @@ export default function Login() {
                 onChange={(event) => setPassword(event.target.value)}
                 className={ui.input}
               />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  data-testid="login-toggle-password"
+                  aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                  onClick={() => setIsPasswordVisible((prev) => !prev)}
+                  className="text-xs font-semibold text-slate-500 transition hover:text-slate-900"
+                >
+                  {isPasswordVisible ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
 
             {error ? (
               <div
                 role="alert"
+                aria-live="polite"
                 data-testid="login-error-message"
                 className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
               >
