@@ -1,30 +1,34 @@
 /**
- * UI 스타일 유틸리티
- * 재사용 가능한 Tailwind CSS 클래스 모음
+ * Shared UI utility classes.
+ * PR-C1 scope: design tokens and layout shell refresh.
  */
 export const ui = {
-  page: "min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 text-slate-900",
-  shell: "flex min-h-screen",
-  sidebar: "w-64 border-r border-slate-200/60 bg-white/80 backdrop-blur-sm",
-  main: "flex-1",
+  page:
+    "min-h-screen text-[var(--jj-color-ink)] bg-[radial-gradient(1200px_580px_at_0%_-15%,rgba(14,165,233,0.20),transparent_70%),radial-gradient(1000px_520px_at_100%_-20%,rgba(16,185,129,0.16),transparent_70%),linear-gradient(180deg,#f8fbff_0%,#eef4fb_100%)]",
+  shell: "min-h-screen md:grid md:grid-cols-[272px_minmax(0,1fr)]",
+  sidebar:
+    "hidden md:block border-r border-[color:var(--jj-color-line)]/70 bg-white/75 backdrop-blur-xl",
+  main: "min-w-0",
   header:
-    "h-16 border-b border-slate-200/60 bg-white/80 backdrop-blur-sm flex items-center justify-between px-3 sm:px-6 gap-2 overflow-hidden",
-  content: "p-6 max-w-6xl mx-auto w-full",
+    "sticky top-0 z-20 flex h-17 items-center justify-between gap-3 overflow-hidden border-b border-[color:var(--jj-color-line)]/70 bg-white/80 px-3 sm:px-5 lg:px-8 backdrop-blur-xl",
+  content: "mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-8",
 
-  card: "rounded-2xl border border-slate-200/60 bg-white/90 backdrop-blur-sm p-4 shadow-sm hover:shadow-md transition-shadow duration-200",
-  cardTitle: "text-base font-semibold text-slate-900",
-  muted: "text-sm text-slate-500",
+  card:
+    "rounded-[var(--jj-radius-xl)] border border-[color:var(--jj-color-line)]/65 bg-white/90 p-4 shadow-[var(--jj-shadow-card)] transition-shadow hover:shadow-[var(--jj-shadow-soft)]",
+  cardTitle: "text-base font-semibold tracking-tight text-[var(--jj-color-ink)]",
+  muted: "text-sm text-[color:var(--jj-color-muted)]",
 
   btnPrimary:
-    "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-sm hover:shadow-md",
+    "inline-flex items-center justify-center rounded-[var(--jj-radius-lg)] border border-transparent bg-[color:var(--jj-color-brand)] px-4 py-2 text-sm font-semibold text-white shadow-[var(--jj-shadow-soft)] transition hover:bg-[color:var(--jj-color-brand-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--jj-color-brand)]/35",
   btnSecondary:
-    "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium border border-slate-200 bg-white hover:bg-slate-50 transition-all duration-200",
+    "inline-flex items-center justify-center rounded-[var(--jj-radius-lg)] border border-[color:var(--jj-color-line)] bg-white px-4 py-2 text-sm font-semibold text-[var(--jj-color-ink)] transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--jj-color-brand)]/25",
   btnDanger:
-    "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium border border-rose-200 bg-gradient-to-r from-rose-50 to-rose-100/50 text-rose-700 hover:from-rose-100 hover:to-rose-200/50 transition-all duration-200",
+    "inline-flex items-center justify-center rounded-[var(--jj-radius-lg)] border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200",
 
   input:
-    "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 transition-all duration-200",
+    "w-full rounded-[var(--jj-radius-lg)] border border-[color:var(--jj-color-line)] bg-white px-3 py-2 text-sm text-[var(--jj-color-ink)] outline-none transition placeholder:text-[color:var(--jj-color-muted)]/80 focus-visible:border-[color:var(--jj-color-brand)] focus-visible:ring-2 focus-visible:ring-[color:var(--jj-color-brand)]/25",
   select:
-    "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 transition-all duration-200",
-  chip: "inline-flex items-center rounded-lg border border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/50 px-2 py-1 text-xs text-slate-700",
+    "w-full rounded-[var(--jj-radius-lg)] border border-[color:var(--jj-color-line)] bg-white px-3 py-2 text-sm text-[var(--jj-color-ink)] outline-none transition focus-visible:border-[color:var(--jj-color-brand)] focus-visible:ring-2 focus-visible:ring-[color:var(--jj-color-brand)]/25",
+  chip:
+    "inline-flex items-center rounded-full border border-[color:var(--jj-color-line)] bg-slate-50 px-2.5 py-1 text-xs font-medium text-[var(--jj-color-muted)]",
 };

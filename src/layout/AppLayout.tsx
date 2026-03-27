@@ -1,4 +1,3 @@
-// src/layout/AppLayout.tsx
 import React from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
@@ -16,7 +15,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <header className={ui.header}>
             <Header />
           </header>
-
           <main className={ui.content}>{children}</main>
         </div>
       </div>
