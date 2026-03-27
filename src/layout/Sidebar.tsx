@@ -1,11 +1,11 @@
 import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { to: "/", label: "Dashboard", shortLabel: "DB" },
-  { to: "/applications", label: "Applications", shortLabel: "AP" },
-  { to: "/resume", label: "Resume", shortLabel: "RE" },
-  { to: "/notes", label: "Notes", shortLabel: "NO" },
-  { to: "/statistics", label: "Statistics", shortLabel: "ST" },
+  { to: "/", label: "대시보드", shortLabel: "홈" },
+  { to: "/applications", label: "지원 현황", shortLabel: "지원" },
+  { to: "/resume", label: "이력서", shortLabel: "이력" },
+  { to: "/notes", label: "메모", shortLabel: "메모" },
+  { to: "/statistics", label: "통계", shortLabel: "통계" },
 ];
 
 const linkBase =
@@ -22,7 +22,9 @@ export default function Sidebar() {
           Portfolio
         </div>
         <div className="mt-1 text-xl font-black tracking-tight text-slate-900">JOBFLUX</div>
-        <p className="mt-2 text-sm text-slate-500">Focused tracker for job search execution.</p>
+        <p className="mt-2 text-sm text-slate-500">
+          취업 준비 실행 흐름을 한눈에 관리하는 대시보드
+        </p>
       </div>
 
       <nav className="space-y-1.5">

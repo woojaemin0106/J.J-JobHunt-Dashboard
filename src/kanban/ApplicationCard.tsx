@@ -1,15 +1,14 @@
-// src/kanban/ApplicationCard.tsx
 import { memo } from "react";
 import type { Application } from "../types/application";
-import { ui } from "../utils/ui";
 import { calculateDDay } from "../utils/date";
 
-/**
- * 지원 카드 컴포넌트
- * React.memo로 감싸서 props가 변경되지 않으면 리렌더링을 방지합니다.
- * - application 객체나 onClick 함수가 동일하면 리렌더링 스킵
- * - 다른 카드가 수정되어도 이 카드는 리렌더링되지 않음
- */
+function statusAccent(status: Application["status"]) {
+  if (status === "writing") return "border-l-sky-400";
+  if (status === "submitted") return "border-l-amber-400";
+  if (status === "passed") return "border-l-emerald-400";
+  return "border-l-rose-400";
+}
+
 const ApplicationCard = memo(function ApplicationCard({
   application,
   onClick,
@@ -17,32 +16,33 @@ const ApplicationCard = memo(function ApplicationCard({
   application: Application;
   onClick?: () => void;
 }) {
-  const badge = calculateDDay(application.deadline);
+  const dday = calculateDDay(application.deadline);
 
   return (
-    <div
-      className={`${ui.card} ${onClick ? "cursor-pointer hover:shadow-md transition" : ""}`}
+    <button
+      type="button"
+      className={`w-full rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${statusAccent(
+        application.status
+      )} border-l-4 ${onClick ? "cursor-pointer" : "cursor-default"}`}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="font-semibold">{application.companyName}</div>
-          <div className={ui.muted}>{application.jobTitle}</div>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="truncate text-sm font-bold text-slate-900">{application.companyName}</div>
+          <div className="truncate text-xs text-slate-500">{application.jobTitle}</div>
         </div>
-        {badge && (
-          <div className="text-xs font-semibold rounded-lg border px-2 py-1">
-            {badge}
-          </div>
-        )}
+        {dday ? (
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+            {dday}
+          </span>
+        ) : null}
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
-        <div className={ui.muted}>Resume versions</div>
-        <div className="text-sm font-semibold">
-          {application.versions?.length ?? 0}
-        </div>
+      <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+        <span>버전 {application.versions.length}</span>
+        <span>{application.deadline || "마감일 없음"}</span>
       </div>
-    </div>
+    </button>
   );
 });
 
