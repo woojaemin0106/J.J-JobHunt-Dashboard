@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { StatusBanner } from "../components/StateCards";
 import { useAuthActions } from "../store/authStore";
 import { isSupabaseConfigured } from "../supabase/supabase";
 import { ERROR_MESSAGES } from "../utils/errorMessages";
@@ -119,20 +120,15 @@ export default function Signup() {
             </div>
 
             {error ? (
-              <div
-                role="alert"
-                aria-live="polite"
-                data-testid="signup-error-message"
-                className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
-              >
+              <StatusBanner tone="error" testId="signup-error-message">
                 {error}
-              </div>
+              </StatusBanner>
             ) : null}
 
             {!isSupabaseConfigured && !error ? (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+              <StatusBanner tone="warning">
                 {ERROR_MESSAGES.auth.serviceUnavailable}
-              </div>
+              </StatusBanner>
             ) : null}
 
             <button

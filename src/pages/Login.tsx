@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { StatusBanner } from "../components/StateCards";
 import { useAuthActions } from "../store/authStore";
 import { isSupabaseConfigured } from "../supabase/supabase";
 import { demoAuthConfig } from "../config/demoAuth";
@@ -164,20 +165,15 @@ export default function Login() {
             </div>
 
             {error ? (
-              <div
-                role="alert"
-                aria-live="polite"
-                data-testid="login-error-message"
-                className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
-              >
+              <StatusBanner tone="error" testId="login-error-message">
                 {error}
-              </div>
+              </StatusBanner>
             ) : null}
 
             {!isSupabaseConfigured && !error ? (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+              <StatusBanner tone="warning">
                 {ERROR_MESSAGES.auth.serviceUnavailable}
-              </div>
+              </StatusBanner>
             ) : null}
 
             <button
