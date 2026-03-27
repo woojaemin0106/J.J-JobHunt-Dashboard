@@ -3,6 +3,7 @@ import { ui } from "../utils/ui";
 import { useNotes, useNoteActions } from "../store/noteStore";
 import type { Note } from "../types/note";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { EmptyStateCard } from "../components/StateCards";
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString("ko-KR", {
@@ -241,11 +242,13 @@ export default function Notes() {
       </section>
 
       {sortedNotes.length === 0 ? (
-        <section className={ui.card}>
-          <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">
-            아직 메모가 없습니다. 면접 준비 포인트를 첫 메모로 남겨보세요.
-          </div>
-        </section>
+        <EmptyStateCard
+          testId="notes-empty-state"
+          title="아직 메모가 없습니다"
+          description="면접 준비 포인트를 첫 메모로 남기고, 수정으로 내용을 확장해보세요."
+          actionLabel="+ 첫 메모 추가"
+          onAction={() => setIsCreateOpen(true)}
+        />
       ) : (
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {sortedNotes.map((note) => (

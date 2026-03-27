@@ -4,6 +4,7 @@ import KanbanBoard from "../kanban/KanbanBoard";
 import ApplicationModal from "../kanban/ApplicationModal";
 import { useApplications } from "../store/applicationStore";
 import type { Application } from "../types/application";
+import { EmptyStateCard } from "../components/StateCards";
 import { ui } from "../utils/ui";
 import { filterApplications } from "./filterApplications";
 import {
@@ -149,24 +150,23 @@ export default function Applications() {
       </section>
 
       {applications.length === 0 ? (
-        <section className={ui.card}>
-          <h3 className={ui.cardTitle}>지원 현황 보드를 시작해보세요</h3>
-          <p className="mt-2 text-sm text-slate-500">
-            첫 지원 회사를 등록하면 상태별로 진행 현황을 추적할 수 있습니다.
-          </p>
-          <button type="button" className={`${ui.btnPrimary} mt-4`} onClick={handleAddNew}>
-            + 첫 지원 추가
-          </button>
-        </section>
+        <EmptyStateCard
+          testId="applications-empty-state"
+          title="지원 현황 보드를 시작해보세요"
+          description="첫 지원 회사를 등록하면 상태별 진행 상황을 한눈에 추적할 수 있습니다."
+          actionLabel="+ 첫 지원 추가"
+          onAction={handleAddNew}
+        />
       ) : null}
 
       {applications.length > 0 && filteredApplications.length === 0 ? (
-        <section className={ui.card}>
-          <h3 className={ui.cardTitle}>조건에 맞는 결과가 없습니다</h3>
-          <p className="mt-2 text-sm text-slate-500">
-            다른 상태를 선택하거나 필터를 초기화해 전체 항목을 확인하세요.
-          </p>
-        </section>
+        <EmptyStateCard
+          testId="applications-filter-empty-state"
+          title="조건에 맞는 결과가 없습니다"
+          description="다른 상태를 선택하거나 필터를 초기화해서 전체 항목을 확인해보세요."
+          actionLabel="필터 초기화"
+          onAction={handleClearFilters}
+        />
       ) : null}
 
       <KanbanBoard applications={filteredApplications} onCardClick={handleCardClick} />
