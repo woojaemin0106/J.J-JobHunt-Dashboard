@@ -1,16 +1,16 @@
-// src/kanban/KanbanColumn.tsx
 import { memo, useCallback } from "react";
 import type { Application } from "../types/application";
 import ApplicationCard from "./ApplicationCard";
-import { ui } from "../utils/ui";
 
 type Status = Application["status"];
 
-/**
- * 칸반 컬럼 컴포넌트
- * React.memo로 감싸서 해당 status의 applications가 변경될 때만 리렌더링됩니다.
- * - 다른 status의 applications가 변경되어도 이 컬럼은 리렌더링되지 않음
- */
+function statusTone(status: Status) {
+  if (status === "writing") return "bg-sky-100 text-sky-700 border-sky-200";
+  if (status === "submitted") return "bg-amber-100 text-amber-700 border-amber-200";
+  if (status === "passed") return "bg-emerald-100 text-emerald-700 border-emerald-200";
+  return "bg-rose-100 text-rose-700 border-rose-200";
+}
+
 const KanbanColumn = memo(function KanbanColumn({
   title,
   status,
@@ -22,35 +22,41 @@ const KanbanColumn = memo(function KanbanColumn({
   applications: Application[];
   onCardClick?: (application: Application) => void;
 }) {
-  // useCallback으로 onClick 핸들러를 안정화하여 ApplicationCard 리렌더링 방지
   const handleCardClick = useCallback(
-    (app: Application) => {
-      onCardClick?.(app);
+    (application: Application) => {
+      onCardClick?.(application);
     },
     [onCardClick]
   );
 
   return (
-    <div className="space-y-3">
-      <div className={ui.card}>
-        <div className="flex items-center justify-between">
-          <div className="font-semibold">{title}</div>
-          <div className="text-sm text-slate-500">{applications.length}</div>
+    <div className="rounded-2xl border border-slate-200/80 bg-white/85 p-3 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span
+            className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${statusTone(
+              status
+            )}`}
+          >
+            {title}
+          </span>
         </div>
-        <div className="mt-1 text-xs text-slate-500">{status}</div>
+        <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">
+          {applications.length}
+        </span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {applications.length === 0 ? (
-          <div className={ui.card}>
-            <div className={ui.muted}>등록된 항목이 없습니다</div>
+          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm text-slate-500">
+            No items
           </div>
         ) : (
-          applications.map((app) => (
+          applications.map((application) => (
             <ApplicationCard
-              key={app.id}
-              application={app}
-              onClick={() => handleCardClick(app)}
+              key={application.id}
+              application={application}
+              onClick={() => handleCardClick(application)}
             />
           ))
         )}
