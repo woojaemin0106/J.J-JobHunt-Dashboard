@@ -15,42 +15,12 @@ import {
   buildScopedStorageKey,
   migrateLegacyToScoped,
 } from "../utils/scopedStorage";
+import { noteReducer, type NoteStoreState } from "./noteStatePolicy";
 
 const STORAGE_RESOURCE = "notes";
 const LEGACY_STORAGE_KEY = "jj_jobhunt_notes_v1";
 const STORAGE_VERSION = 2;
 const LEGACY_VERSION = 1;
-
-type State = { notes: Note[] };
-
-type Action =
-  | { type: "INIT"; payload: Note[] }
-  | { type: "ADD"; payload: Note }
-  | { type: "UPDATE"; payload: { id: string; patch: Partial<Note> } }
-  | { type: "REMOVE"; payload: { id: string } };
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case "INIT":
-      return { notes: action.payload };
-    case "ADD":
-      return { notes: [action.payload, ...state.notes] };
-    case "UPDATE":
-      return {
-        notes: state.notes.map((n) =>
-          n.id === action.payload.id
-            ? { ...n, ...action.payload.patch, updatedAt: new Date().toISOString() }
-            : n
-        ),
-      };
-    case "REMOVE":
-      return {
-        notes: state.notes.filter((n) => n.id !== action.payload.id),
-      };
-    default:
-      return state;
-  }
-}
 
 type Actions = {
   addNote: (input: Omit<Note, "id" | "createdAt" | "updatedAt">) => void;
@@ -58,7 +28,7 @@ type Actions = {
   removeNote: (id: string) => void;
 };
 
-const StateCtx = createContext<State | null>(null);
+const StateCtx = createContext<NoteStoreState | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
 function loadNotes(scopeId: string): Note[] {
@@ -94,7 +64,7 @@ export function NoteProvider({ children }: { children: React.ReactNode }) {
   );
 
   const [state, dispatch] = useReducer(
-    reducer,
+    noteReducer,
     { notes: [] },
     () => ({ notes: loadNotes(scopeId) })
   );
