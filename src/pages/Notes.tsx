@@ -1,239 +1,276 @@
-// src/pages/Notes.tsx
-import { useState, useCallback, memo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { ui } from "../utils/ui";
 import { useNotes, useNoteActions } from "../store/noteStore";
 import type { Note } from "../types/note";
 import ConfirmDialog from "../components/ConfirmDialog";
 
-/**
- * 메모 카드 컴포넌트
- * React.memo로 감싸서 해당 note가 변경될 때만 리렌더링됩니다.
- */
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 const NoteCard = memo(function NoteCard({
   note,
   isEditing,
-  editingNote,
+  editingDraft,
   onEdit,
   onDelete,
   onSave,
   onCancel,
-  onEditingNoteChange,
+  onDraftChange,
 }: {
   note: Note;
   isEditing: boolean;
-  editingNote: Note | null;
+  editingDraft: Note | null;
   onEdit: (note: Note) => void;
   onDelete: (id: string) => void;
   onSave: () => void;
   onCancel: () => void;
-  onEditingNoteChange: (note: Note) => void;
+  onDraftChange: (next: Note) => void;
 }) {
-  if (isEditing && editingNote) {
+  if (isEditing && editingDraft) {
     return (
-      <div className={ui.card}>
-        <div className="space-y-3">
-          <input
-            type="text"
-            className={ui.input}
-            value={editingNote.title}
-            onChange={(e) =>
-              onEditingNoteChange({ ...editingNote, title: e.target.value })
-            }
-          />
-          <textarea
-            className={ui.input}
-            rows={5}
-            value={editingNote.content}
-            onChange={(e) =>
-              onEditingNoteChange({ ...editingNote, content: e.target.value })
-            }
-          />
-          <div className="flex gap-3">
-            <button className={ui.btnPrimary} onClick={onSave}>
-              저장
-            </button>
-            <button className={ui.btnSecondary} onClick={onCancel}>
-              취소
-            </button>
-          </div>
+      <article className={`${ui.card} space-y-3`}>
+        <h3 className="text-sm font-bold text-slate-900">메모 편집</h3>
+        <input
+          type="text"
+          className={ui.input}
+          value={editingDraft.title}
+          onChange={(event) =>
+            onDraftChange({ ...editingDraft, title: event.target.value })
+          }
+        />
+        <textarea
+          className={ui.input}
+          rows={6}
+          value={editingDraft.content}
+          onChange={(event) =>
+            onDraftChange({ ...editingDraft, content: event.target.value })
+          }
+        />
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className={ui.btnPrimary} onClick={onSave}>
+            저장
+          </button>
+          <button type="button" className={ui.btnSecondary} onClick={onCancel}>
+            취소
+          </button>
         </div>
-      </div>
+      </article>
     );
   }
 
   return (
-    <div className={ui.card}>
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <h3 className="font-semibold text-lg">{note.title}</h3>
-        <div className="flex gap-2">
+    <article className={`${ui.card} flex h-full flex-col`}>
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <h3 className="line-clamp-2 text-base font-bold text-slate-900">{note.title}</h3>
+        <div className="flex shrink-0 items-center gap-2 text-xs font-semibold">
           <button
-            className="text-sm text-slate-500 hover:text-slate-700"
+            type="button"
+            className="rounded-lg px-2 py-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             onClick={() => onEdit(note)}
           >
-            수정
+            편집
           </button>
           <button
-            className="text-sm text-rose-500 hover:text-rose-700"
+            type="button"
+            className="rounded-lg px-2 py-1 text-rose-500 transition hover:bg-rose-50 hover:text-rose-700"
             onClick={() => onDelete(note.id)}
           >
             삭제
           </button>
         </div>
       </div>
-      <div className="text-sm text-slate-600 whitespace-pre-wrap">
-        {note.content || <span className={ui.muted}>내용 없음</span>}
+
+      <div className="flex-1 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm leading-relaxed text-slate-700">
+        {note.content.trim().length > 0 ? (
+          <p className="whitespace-pre-wrap">{note.content}</p>
+        ) : (
+          <p className={ui.muted}>내용이 비어 있습니다.</p>
+        )}
       </div>
-      <div className="mt-3 text-xs text-slate-400">
-        {new Date(note.updatedAt).toLocaleDateString("ko-KR")}
+
+      <div className="mt-3 text-xs font-medium text-slate-500">
+        마지막 수정 {formatDate(note.updatedAt)}
       </div>
-    </div>
+    </article>
   );
 });
 
 export default function Notes() {
   const notes = useNotes();
   const { addNote, updateNote, removeNote } = useNoteActions();
-  const [isEditing, setIsEditing] = useState<string | null>(null);
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
+
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState("");
   const [newNoteContent, setNewNoteContent] = useState("");
-  const [showNewForm, setShowNewForm] = useState(false);
+
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingDraft, setEditingDraft] = useState<Note | null>(null);
+
   const [deleteConfirm, setDeleteConfirm] = useState<{
     isOpen: boolean;
     noteId: string | null;
   }>({ isOpen: false, noteId: null });
 
-  // useCallback으로 핸들러 함수들을 안정화하여 NoteCard 리렌더링 방지
-  const handleAdd = useCallback(() => {
-    if (newNoteTitle.trim()) {
-      addNote({
-        title: newNoteTitle,
-        content: newNoteContent,
-      });
-      setNewNoteTitle("");
-      setNewNoteContent("");
-      setShowNewForm(false);
-    }
-  }, [newNoteTitle, newNoteContent, addNote]);
+  const sortedNotes = useMemo(() => {
+    return [...notes].sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  }, [notes]);
 
-  const handleEdit = useCallback((note: Note) => {
-    setEditingNote(note);
-    setIsEditing(note.id);
+  const closeCreateForm = useCallback(() => {
+    setIsCreateOpen(false);
+    setNewNoteTitle("");
+    setNewNoteContent("");
   }, []);
 
-  const handleSave = useCallback(() => {
-    if (editingNote) {
-      updateNote(editingNote.id, {
-        title: editingNote.title,
-        content: editingNote.content,
-      });
-      setIsEditing(null);
-      setEditingNote(null);
-    }
-  }, [editingNote, updateNote]);
+  const handleAddNote = useCallback(() => {
+    const title = newNoteTitle.trim();
+    if (title.length === 0) return;
 
-  const handleCancel = useCallback(() => {
-    setIsEditing(null);
-    setEditingNote(null);
+    addNote({
+      title,
+      content: newNoteContent.trim(),
+    });
+    closeCreateForm();
+  }, [addNote, closeCreateForm, newNoteContent, newNoteTitle]);
+
+  const handleStartEdit = useCallback((note: Note) => {
+    setEditingNoteId(note.id);
+    setEditingDraft(note);
   }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingNoteId(null);
+    setEditingDraft(null);
+  }, []);
+
+  const handleSaveEdit = useCallback(() => {
+    if (!editingDraft || !editingNoteId) return;
+
+    const title = editingDraft.title.trim();
+    if (title.length === 0) return;
+
+    updateNote(editingNoteId, {
+      title,
+      content: editingDraft.content.trim(),
+    });
+    handleCancelEdit();
+  }, [editingDraft, editingNoteId, handleCancelEdit, updateNote]);
 
   const handleDelete = useCallback((id: string) => {
     setDeleteConfirm({ isOpen: true, noteId: id });
   }, []);
 
-  const confirmDelete = useCallback(() => {
-    if (deleteConfirm.noteId) {
-      removeNote(deleteConfirm.noteId);
-      setDeleteConfirm({ isOpen: false, noteId: null });
-    }
+  const handleConfirmDelete = useCallback(() => {
+    if (!deleteConfirm.noteId) return;
+
+    removeNote(deleteConfirm.noteId);
+    setDeleteConfirm({ isOpen: false, noteId: null });
   }, [deleteConfirm.noteId, removeNote]);
 
-  const handleEditingNoteChange = useCallback((note: Note) => {
-    setEditingNote(note);
-  }, []);
-
   return (
-    <div className="space-y-4">
-      <div className={ui.card}>
-        <div className="flex items-center justify-between gap-3">
+    <div className="space-y-6">
+      <section className="rounded-3xl border border-slate-200/70 bg-gradient-to-r from-cyan-900 to-blue-900 p-6 text-white shadow-[var(--jj-shadow-soft)]">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className={ui.cardTitle}>메모장</div>
-            <div className={ui.muted}>중요한 정보와 아이디어를 기록하세요</div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-200">
+              Notes workspace
+            </p>
+            <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
+              면접 준비 메모를 한 화면에서 정리하세요
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-cyan-100/95">
+              회사별 조사 내용, 예상 질문, 회고를 기록해두면 복습 속도가 크게 빨라집니다.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm">
+            <div className="text-[11px] text-cyan-100/80">저장된 메모</div>
+            <div className="text-2xl font-black">{notes.length}</div>
+          </div>
+        </div>
+      </section>
+
+      <section className={ui.card}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className={ui.cardTitle}>메모 작성</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              핵심 포인트만 먼저 적고, 필요할 때 편집으로 내용을 확장하세요.
+            </p>
           </div>
           <button
+            type="button"
             className={ui.btnPrimary}
-            onClick={() => setShowNewForm(!showNewForm)}
+            onClick={() => setIsCreateOpen((current) => !current)}
           >
-            + 새 메모
+            {isCreateOpen ? "입력 닫기" : "+ 새 메모 추가"}
           </button>
         </div>
-      </div>
 
-      {showNewForm && (
-        <div className={ui.card}>
-          <div className="space-y-3">
+        {isCreateOpen ? (
+          <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
             <input
               type="text"
               className={ui.input}
               placeholder="메모 제목"
               value={newNoteTitle}
-              onChange={(e) => setNewNoteTitle(e.target.value)}
+              onChange={(event) => setNewNoteTitle(event.target.value)}
             />
             <textarea
               className={ui.input}
-              rows={5}
+              rows={6}
               placeholder="메모 내용"
               value={newNoteContent}
-              onChange={(e) => setNewNoteContent(e.target.value)}
+              onChange={(event) => setNewNoteContent(event.target.value)}
             />
-            <div className="flex gap-3">
-              <button className={ui.btnPrimary} onClick={handleAdd}>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className={ui.btnPrimary} onClick={handleAddNote}>
                 저장
               </button>
-              <button
-                className={ui.btnSecondary}
-                onClick={() => {
-                  setShowNewForm(false);
-                  setNewNoteTitle("");
-                  setNewNoteContent("");
-                }}
-              >
+              <button type="button" className={ui.btnSecondary} onClick={closeCreateForm}>
                 취소
               </button>
             </div>
           </div>
-        </div>
-      )}
+        ) : null}
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {notes.length === 0 ? (
-          <div className={ui.card}>
-            <div className={ui.muted}>메모가 없습니다.</div>
+      {sortedNotes.length === 0 ? (
+        <section className={ui.card}>
+          <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">
+            아직 메모가 없습니다. 면접 준비 포인트를 첫 메모로 남겨보세요.
           </div>
-        ) : (
-          notes.map((note) => (
+        </section>
+      ) : (
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {sortedNotes.map((note) => (
             <NoteCard
               key={note.id}
               note={note}
-              isEditing={isEditing === note.id}
-              editingNote={isEditing === note.id ? editingNote : null}
-              onEdit={handleEdit}
+              isEditing={editingNoteId === note.id}
+              editingDraft={editingNoteId === note.id ? editingDraft : null}
+              onEdit={handleStartEdit}
               onDelete={handleDelete}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              onEditingNoteChange={handleEditingNoteChange}
+              onSave={handleSaveEdit}
+              onCancel={handleCancelEdit}
+              onDraftChange={setEditingDraft}
             />
-          ))
-        )}
-      </div>
+          ))}
+        </section>
+      )}
 
       <ConfirmDialog
         isOpen={deleteConfirm.isOpen}
         title="메모 삭제"
-        message="정말 이 메모를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        message="선택한 메모를 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다."
         confirmText="삭제"
         cancelText="취소"
-        onConfirm={confirmDelete}
+        onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteConfirm({ isOpen: false, noteId: null })}
       />
     </div>
