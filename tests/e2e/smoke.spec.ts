@@ -13,9 +13,21 @@ test("guest app bootstrap redirects to login @smoke", async ({ page }) => {
   await expect(page.getByTestId("login-submit-button")).toBeVisible();
   await page.getByTestId("guest-login-button").click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByTestId("home-demo-quickflow")).toBeVisible();
 
-  await page.goto("/statistics");
+  await page.getByTestId("demo-flow-step-applications").click();
+  await expect(page).toHaveURL(/\/applications$/);
+
+  await page.goto("/");
+  await page.getByTestId("demo-flow-step-notes").click();
+  await expect(page).toHaveURL(/\/notes$/);
+
+  await page.goto("/");
+  await page.getByTestId("demo-flow-step-statistics").click();
   await expect(page).toHaveURL(/\/statistics$/);
+
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/$/);
 });
 
 test("demo login reaches protected routes when demo env is configured @smoke", async ({
@@ -28,7 +40,8 @@ test("demo login reaches protected routes when demo env is configured @smoke", a
 
   await page.getByTestId("demo-login-button").click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByTestId("home-demo-quickflow")).toBeVisible();
 
-  await page.goto("/statistics");
+  await page.getByTestId("demo-flow-step-statistics").click();
   await expect(page).toHaveURL(/\/statistics$/);
 });

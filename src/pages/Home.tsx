@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import type { Application } from "../types/application";
 import type { Todo } from "../types/todo";
 import { useApplications } from "../store/applicationStore";
+import { useAuth } from "../store/authStore";
 import { useTodoActions, useTodos } from "../store/todoStore";
+import { demoAuthConfig } from "../config/demoAuth";
 import { getDaysUntil } from "../utils/date";
 import { ui } from "../utils/ui";
 
@@ -83,6 +85,7 @@ const RecentActivityCard = memo(function RecentActivityCard({
 
 export default function Home() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const applications = useApplications();
   const todos = useTodos();
   const { addTodo, removeTodo, toggleTodo } = useTodoActions();
@@ -128,6 +131,12 @@ export default function Home() {
   const handleToggleTodo = useCallback((id: string) => toggleTodo(id), [toggleTodo]);
   const handleRemoveTodo = useCallback((id: string) => removeTodo(id), [removeTodo]);
 
+  const isGuestSession = user?.id === "guest";
+  const isDemoAccount =
+    demoAuthConfig.isVisible &&
+    user?.email.toLowerCase() === demoAuthConfig.email.toLowerCase();
+  const isInterviewDemoMode = isGuestSession || isDemoAccount;
+
   return (
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200/70 bg-gradient-to-r from-blue-950 to-sky-900 p-6 text-white shadow-[var(--jj-shadow-soft)]">
@@ -152,6 +161,56 @@ export default function Home() {
           </button>
         </div>
       </section>
+
+      {isInterviewDemoMode ? (
+        <section
+          className={`${ui.card} border-blue-200/70 bg-gradient-to-r from-blue-50 to-cyan-50/70`}
+          data-testid="home-demo-quickflow"
+        >
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
+                Interview demo quick flow
+              </p>
+              <h3 className="mt-1 text-lg font-black text-slate-900">
+                5분 데모 동선으로 핵심 화면을 빠르게 보여주세요
+              </h3>
+              <p className="mt-1 text-sm text-slate-600">
+                아래 순서대로 이동하면 지원 현황, 메모, 통계를 한 번에 확인할 수 있습니다.
+              </p>
+            </div>
+            <span className="inline-flex w-fit rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700">
+              {isGuestSession ? "게스트 데모 모드" : "데모 계정 모드"}
+            </span>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <button
+              type="button"
+              className={`${ui.btnSecondary} justify-start`}
+              data-testid="demo-flow-step-applications"
+              onClick={() => navigate("/applications")}
+            >
+              1. 지원 현황 보드 보기
+            </button>
+            <button
+              type="button"
+              className={`${ui.btnSecondary} justify-start`}
+              data-testid="demo-flow-step-notes"
+              onClick={() => navigate("/notes")}
+            >
+              2. 메모 화면 확인
+            </button>
+            <button
+              type="button"
+              className={`${ui.btnSecondary} justify-start`}
+              data-testid="demo-flow-step-statistics"
+              onClick={() => navigate("/statistics")}
+            >
+              3. 통계 화면 확인
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className={ui.card}>
