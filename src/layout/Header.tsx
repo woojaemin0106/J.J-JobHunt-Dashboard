@@ -50,7 +50,7 @@ export default function Header() {
       <div className="hidden flex-1 items-center gap-2 md:flex md:max-w-xl">
         <input
           key={searchInputKey}
-          className={ui.input}
+          className={`${ui.input} h-10 bg-white/85`}
           placeholder="회사명/직무 검색 후 Enter"
           defaultValue={currentQuery}
           onKeyDown={(e) => {

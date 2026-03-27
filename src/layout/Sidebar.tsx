@@ -9,10 +9,11 @@ const navItems = [
 ];
 
 const linkBase =
-  "group flex items-center gap-3 rounded-[14px] border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-600 transition-all";
-const linkIdle = "hover:border-slate-200 hover:bg-white hover:text-slate-900";
+  "group flex items-center gap-3 rounded-[14px] border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-600 transition-all duration-200";
+const linkIdle =
+  "hover:-translate-y-[1px] hover:border-slate-200 hover:bg-white hover:text-slate-900";
 const linkActive =
-  "border-blue-200/80 bg-gradient-to-r from-blue-50 to-emerald-50/40 text-slate-900 shadow-sm";
+  "border-blue-200/80 bg-gradient-to-r from-blue-50 to-emerald-50/40 text-slate-900 shadow-[var(--jj-shadow-floating)]";
 
 export default function Sidebar() {
   return (
@@ -37,10 +38,20 @@ export default function Sidebar() {
               `${linkBase} ${isActive ? linkActive : linkIdle}`
             }
           >
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-[10px] font-bold tracking-wide text-slate-600 group-hover:bg-slate-200">
-              {item.shortLabel}
-            </span>
-            <span>{item.label}</span>
+            {({ isActive }) => (
+              <>
+                <span
+                  className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-bold tracking-wide transition ${
+                    isActive
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-slate-100 text-slate-600 group-hover:bg-slate-200"
+                  }`}
+                >
+                  {item.shortLabel}
+                </span>
+                <span>{item.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
