@@ -8,6 +8,7 @@ const onAuthStateChangeMock = vi.fn();
 const signInWithPasswordMock = vi.fn();
 const signUpMock = vi.fn();
 const signOutMock = vi.fn();
+const GUEST_SESSION_STORAGE_KEY = "jj.jobhunt.auth.guest-session.v1";
 let isSupabaseAvailable = true;
 
 vi.mock("../supabase/supabase", () => ({
@@ -50,6 +51,7 @@ describe("authStore", () => {
   beforeEach(() => {
     isSupabaseAvailable = true;
     latestActions = null;
+    localStorage.clear();
 
     getSessionMock.mockReset();
     onAuthStateChangeMock.mockReset();
@@ -129,6 +131,43 @@ describe("authStore", () => {
 
     expect(loginResult).toBe(false);
     expect(signupResult).toBe(false);
+  });
+
+  it("continues as guest and persists local guest session", async () => {
+    await renderAuthProvider();
+
+    act(() => {
+      latestActions!.continueAsGuest();
+    });
+
+    expect(screen.getByTestId("auth-probe")).toHaveTextContent(
+      "ready:true:guest@jj-jobhunt.local"
+    );
+    expect(localStorage.getItem(GUEST_SESSION_STORAGE_KEY)).toBe("true");
+  });
+
+  it("hydrates guest session from local storage and logs out locally", async () => {
+    localStorage.setItem(GUEST_SESSION_STORAGE_KEY, "true");
+
+    render(
+      <AuthProvider>
+        <AuthProbe />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("auth-probe")).toHaveTextContent(
+        "ready:true:guest@jj-jobhunt.local"
+      );
+    });
+
+    await act(async () => {
+      await latestActions!.logout();
+    });
+
+    expect(screen.getByTestId("auth-probe")).toHaveTextContent("ready:false:none");
+    expect(localStorage.getItem(GUEST_SESSION_STORAGE_KEY)).toBeNull();
+    expect(signOutMock).not.toHaveBeenCalled();
   });
 
   it("returns false for auth actions when supabase is unavailable", async () => {
