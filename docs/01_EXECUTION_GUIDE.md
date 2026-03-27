@@ -409,3 +409,27 @@
 ### Verification Criteria
 - [ ] 면접관이 체크리스트만 보고 동일 동선을 재현할 수 있다.
 - [ ] AI 리뷰 실패가 핵심 품질 게이트(test/lint/build)를 차단하지 않는다.
+
+## EG-16 Release Candidate Finalization (2026-03-27)
+
+### Definition
+- Record the final hardening status for the portfolio release candidate (`rc1`).
+
+### Current State
+- Local CI-mirror verification completed.
+  - `npm run lint`: passed
+  - `npm run build`: passed
+  - `npm run test:coverage`: passed (global 76.47%, branch 70.54%)
+  - `npm run test:e2e:smoke`: passed (1 passed, 1 skipped because demo env is optional)
+- Gate 3 operations (CI, quality gate, release/rollback procedure) are connected by workflow and docs.
+
+### Principles Going Forward
+- Every final PR before merging to `dev` MUST run CI-mirror checks (`lint`, `build`, `coverage`, `e2e smoke`).
+- Release checklist and rollback triggers MUST be explicitly included in the PR body.
+- Demo runbook and proof-pack docs SHOULD be updated together for interview-ready releases.
+
+### Verification Criteria
+- [ ] CI required checks (`lint`, `unit`, `integration`, `build`, `e2e-smoke`) are all green.
+- [ ] Coverage stays at or above global threshold (70%).
+- [ ] The 5-minute demo flow (login -> applications -> notes/statistics) is reproducible.
+- [ ] Release and rollback checklist items are reflected in the PR body.

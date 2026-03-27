@@ -130,3 +130,24 @@ npm run test:e2e:smoke
 ## 11) AI Review Workflow
 
 - [AI Review Workflow Guide](docs/04_AI_REVIEW_WORKFLOW.md)
+
+## 12) Release Readiness Snapshot (2026-03-27)
+
+- Version target: `rc1` (portfolio-ready)
+- Validation summary:
+  - `npm run lint`: pass
+  - `npm run build`: pass
+  - `npm run test:coverage`: pass (All files 76.47%, Branch 70.54%)
+  - `npm run test:e2e:smoke`: pass (1 passed / 1 skipped)
+
+- 5-minute demo flow:
+  1. Login (guest/demo one-click)
+  2. Applications board
+  3. Notes
+  4. Statistics
+
+- Demo links:
+  - Runbook: [docs/03_INTERVIEW_DEMO_RUNBOOK.md](docs/03_INTERVIEW_DEMO_RUNBOOK.md)
+  - Proof pack: [docs/02_PORTFOLIO_PROOF_PACK.md](docs/02_PORTFOLIO_PROOF_PACK.md)
+  - AI review workflow: [docs/04_AI_REVIEW_WORKFLOW.md](docs/04_AI_REVIEW_WORKFLOW.md)
+  - Live demo URL: `TBD` (update when deployment URL is finalized)
