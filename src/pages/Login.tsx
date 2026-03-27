@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthActions } from "../store/authStore";
+import { isSupabaseConfigured } from "../supabase/supabase";
 import { ERROR_MESSAGES } from "../utils/errorMessages";
 import { ui } from "../utils/ui";
 
@@ -15,6 +16,12 @@ export default function Login() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!isSupabaseConfigured) {
+      setError(ERROR_MESSAGES.auth.serviceUnavailable);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -75,9 +82,15 @@ export default function Login() {
                 </div>
               )}
 
+              {!isSupabaseConfigured && !error && (
+                <div className="text-amber-700 text-sm bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  {ERROR_MESSAGES.auth.serviceUnavailable}
+                </div>
+              )}
+
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !isSupabaseConfigured}
                 className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "처리 중..." : "로그인"}

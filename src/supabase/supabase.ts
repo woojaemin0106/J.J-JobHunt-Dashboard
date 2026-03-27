@@ -1,12 +1,30 @@
-// src/utils/supabase.ts
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  normalizeSupabaseUrl,
+  validateSupabaseConfig,
+} from "./supabaseConfig";
 
-// Vite 환경 변수에서 값을 가져옵니다.
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const rawSupabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const rawSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error("Supabase URL 또는 Anon Key가 설정되지 않았습니다. .env 파일을 확인해주세요.");
+export const supabaseConfigError = validateSupabaseConfig(
+  rawSupabaseUrl,
+  rawSupabaseAnonKey
+);
+export const isSupabaseConfigured = supabaseConfigError === null;
+
+const normalizedSupabaseUrl = isSupabaseConfigured
+  ? normalizeSupabaseUrl(rawSupabaseUrl!)
+  : null;
+const normalizedSupabaseAnonKey = isSupabaseConfigured
+  ? rawSupabaseAnonKey!.trim()
+  : null;
+
+if (supabaseConfigError) {
+  console.error(`[supabase] ${supabaseConfigError}`);
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase: SupabaseClient | null =
+  normalizedSupabaseUrl && normalizedSupabaseAnonKey
+    ? createClient(normalizedSupabaseUrl, normalizedSupabaseAnonKey)
+    : null;

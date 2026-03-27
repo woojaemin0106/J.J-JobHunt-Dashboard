@@ -4,7 +4,10 @@ import React, {
   useEffect,
   useReducer,
 } from "react";
-import { supabase } from "../supabase/supabase";
+import {
+  supabase,
+  supabaseConfigError,
+} from "../supabase/supabase";
 import type { User } from "../types/auth";
 import {
   applyLoadingEnd,
@@ -34,9 +37,27 @@ type Actions = {
   logout: () => Promise<void>;
 };
 
+const AUTH_BOOTSTRAP_TIMEOUT_MS = 6000;
+
 function toErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   return String(error);
+}
+
+function mapSupabaseUserToUser(user: {
+  id: string;
+  email?: string | null;
+  user_metadata?: { full_name?: string };
+}): User {
+  return {
+    id: user.id,
+    email: user.email || "",
+    name: user.user_metadata?.full_name || "",
+  };
+}
+
+function getAuthServiceUnavailableReason(): string {
+  return supabaseConfigError ?? "Supabase 인증 서비스에 연결할 수 없습니다.";
 }
 
 const StateCtx = createContext<AuthContextState | null>(null);
@@ -46,41 +67,99 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, createInitialAuthContextState());
 
   useEffect(() => {
-    // 1. 초기 접속 시 현재 세션 확인
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        const user: User = {
-          id: session.user.id,
-          email: session.user.email || "",
-          name: session.user.user_metadata?.full_name || "",
-        };
-        dispatch({ type: "SET_USER", payload: user });
-      } else {
-        dispatch({ type: "LOADING_END" });
-      }
-    });
+    let isMounted = true;
+    let unsubscribe: (() => void) | null = null;
 
-    // 2. 인증 상태 변경 감지 (로그인, 로그아웃 등 실시간 대응)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        const user: User = {
-          id: session.user.id,
-          email: session.user.email || "",
-          name: session.user.user_metadata?.full_name || "",
-        };
-        dispatch({ type: "SET_USER", payload: user });
-      } else {
-        dispatch({ type: "SET_USER", payload: null });
-      }
-    });
+    const finishLoading = () => {
+      if (!isMounted) return;
+      dispatch({ type: "LOADING_END" });
+    };
 
-    return () => subscription.unsubscribe();
+    if (!supabase) {
+      console.error("[auth] bootstrap skipped:", getAuthServiceUnavailableReason());
+      finishLoading();
+      return () => {
+        isMounted = false;
+      };
+    }
+    const authClient = supabase.auth;
+
+    const getSessionWithTimeout = async () => {
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(
+              new Error(
+                `auth bootstrap timeout (${AUTH_BOOTSTRAP_TIMEOUT_MS}ms)`
+              )
+            );
+          }, AUTH_BOOTSTRAP_TIMEOUT_MS);
+        });
+
+        return await Promise.race([authClient.getSession(), timeoutPromise]);
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+    };
+
+    const bootstrap = async () => {
+      try {
+        const { data: { session }, error } = await getSessionWithTimeout();
+        if (!isMounted) return;
+
+        if (error) {
+          console.error("[auth] initial session check failed:", error.message);
+          finishLoading();
+        } else if (session?.user) {
+          dispatch({ type: "SET_USER", payload: mapSupabaseUserToUser(session.user) });
+        } else {
+          finishLoading();
+        }
+      } catch (error) {
+        console.error("[auth] initial session check failed:", toErrorMessage(error));
+        finishLoading();
+      }
+
+      if (!isMounted) return;
+
+      const { data: { subscription } } = authClient.onAuthStateChange(
+        (_event, session) => {
+          if (!isMounted) return;
+
+          if (session?.user) {
+            dispatch({
+              type: "SET_USER",
+              payload: mapSupabaseUserToUser(session.user),
+            });
+          } else {
+            dispatch({ type: "SET_USER", payload: null });
+          }
+        }
+      );
+
+      unsubscribe = () => subscription.unsubscribe();
+    };
+
+    void bootstrap();
+
+    return () => {
+      isMounted = false;
+      unsubscribe?.();
+    };
   }, []);
 
   const actions: Actions = {
     async login(email, password) {
+      if (!supabase) {
+        console.error("[auth] login skipped:", getAuthServiceUnavailableReason());
+        return false;
+      }
+      const authClient = supabase.auth;
+
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await authClient.signInWithPassword({
           email,
           password,
         });
@@ -97,8 +176,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
 
     async signup(email, password, name) {
+      if (!supabase) {
+        console.error("[auth] signup skipped:", getAuthServiceUnavailableReason());
+        return false;
+      }
+      const authClient = supabase.auth;
+
       try {
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error } = await authClient.signUp({
           email,
           password,
           options: {
@@ -120,7 +205,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
 
     async logout() {
-      const { error } = await supabase.auth.signOut();
+      if (!supabase) {
+        console.error("[auth] logout skipped:", getAuthServiceUnavailableReason());
+        return;
+      }
+      const authClient = supabase.auth;
+
+      const { error } = await authClient.signOut();
       if (error) {
         console.error("[auth] logout failed:", error.message);
       }
