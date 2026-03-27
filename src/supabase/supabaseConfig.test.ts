@@ -5,36 +5,34 @@ import {
 } from "./supabaseConfig";
 
 describe("supabaseConfig", () => {
-  it("returns error when env values are missing", () => {
+  it("값이 누락되었을 때 에러를 반환해야 함", () => {
     expect(validateSupabaseConfig(undefined, undefined)).not.toBeNull();
-    expect(validateSupabaseConfig("", "anon-key")).not.toBeNull();
+    expect(validateSupabaseConfig("", "some-key")).not.toBeNull();
     expect(validateSupabaseConfig("https://project.supabase.co", "")).not.toBeNull();
   });
 
-  it("returns error when placeholder values are used", () => {
+  it("플레이스홀더(기본값)를 그대로 사용하면 에러를 반환해야 함", () => {
+    // 실제 .env에 적힌 예시 값들이 들어오면 거부해야 합니다.
     expect(
-      validateSupabaseConfig("https://your-project.supabase.co", "anon-key")
-    ).not.toBeNull();
-    expect(
-      validateSupabaseConfig("https://project.supabase.co", "your-anon-key")
+      validateSupabaseConfig("https://your-project.supabase.co", "your-anon-key")
     ).not.toBeNull();
   });
 
-  it("returns error for malformed or insecure url", () => {
-    expect(validateSupabaseConfig("not-a-url", "anon-key")).not.toBeNull();
-    expect(validateSupabaseConfig("http://project.supabase.co", "anon-key")).not.toBeNull();
+  it("잘못된 형식이나 보안에 취약한(http) URL은 에러를 반환해야 함", () => {
+    expect(validateSupabaseConfig("not-a-url", "eyJhbGci...")).not.toBeNull();
+    expect(validateSupabaseConfig("http://project.supabase.co", "eyJhbGci...")).not.toBeNull();
   });
 
-  it("accepts valid configuration", () => {
+  it("올바른 설정(실제 JWT 형식의 키)을 수용해야 함", () => {
     expect(
       validateSupabaseConfig(
-        "https://project-id.supabase.co/",
-        "sb_publishable_dummy_key"
+        "https://seqwntckorouwjjimquq.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSJ9.signature" // 실제 JWT 형식
       )
-    ).toBeNull();
+    ).toBeNull(); // 에러가 없어야(null) 통과
   });
 
-  it("normalizes url to origin", () => {
+  it("URL을 origin 형태로 정규화해야 함", () => {
     expect(
       normalizeSupabaseUrl("https://project-id.supabase.co/rest/v1")
     ).toBe("https://project-id.supabase.co");
