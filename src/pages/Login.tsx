@@ -6,6 +6,8 @@ import { demoAuthConfig } from "../config/demoAuth";
 import { ERROR_MESSAGES } from "../utils/errorMessages";
 import { ui } from "../utils/ui";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function Login() {
   const navigate = useNavigate();
   const { login, continueAsGuest } = useAuthActions();
@@ -17,6 +19,11 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
 
   const isDemoLoginVisible = isSupabaseConfigured && demoAuthConfig.isVisible;
+  const trimmedEmail = email.trim();
+  const isEmailDirty = trimmedEmail.length > 0;
+  const isEmailValid = EMAIL_PATTERN.test(trimmedEmail);
+  const isPasswordDirty = password.length > 0;
+  const isPasswordValid = password.length >= 4;
 
   const attemptLogin = async (
     nextEmail: string,
@@ -120,6 +127,7 @@ export default function Login() {
               </label>
               <input
                 id="login-email"
+                data-testid="login-email-input"
                 type="email"
                 required
                 autoComplete="email"
@@ -127,8 +135,25 @@ export default function Login() {
                 placeholder="name@example.com"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                aria-invalid={isEmailDirty && !isEmailValid}
                 className={ui.input}
               />
+              <p
+                data-testid="login-email-hint"
+                className={`text-xs ${
+                  isEmailDirty
+                    ? isEmailValid
+                      ? "text-emerald-700"
+                      : "text-amber-700"
+                    : "text-slate-500"
+                }`}
+              >
+                {isEmailDirty
+                  ? isEmailValid
+                    ? "Valid email format."
+                    : "Please check email format."
+                  : "Use your account email."}
+              </p>
             </div>
 
             <div className="space-y-1.5">
@@ -148,8 +173,25 @@ export default function Login() {
                 placeholder="비밀번호를 입력하세요"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                aria-invalid={isPasswordDirty && !isPasswordValid}
                 className={ui.input}
               />
+              <p
+                data-testid="login-password-hint"
+                className={`text-xs ${
+                  isPasswordDirty
+                    ? isPasswordValid
+                      ? "text-emerald-700"
+                      : "text-amber-700"
+                    : "text-slate-500"
+                }`}
+              >
+                {isPasswordDirty
+                  ? isPasswordValid
+                    ? "Password length looks good."
+                    : "At least 4 characters required."
+                  : "Password must be at least 4 characters."}
+              </p>
               <div className="flex justify-end">
                 <button
                   type="button"
