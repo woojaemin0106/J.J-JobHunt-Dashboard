@@ -83,13 +83,13 @@ export default function Applications() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
-              Pipeline management
+              지원 파이프라인
             </p>
             <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
-              Applications Kanban
+              지원 현황 보드
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-sky-100/90">
-              Track every opportunity from writing to result with a clear status flow.
+              작성 중부터 결과까지, 상태 흐름을 명확하게 관리하세요.
             </p>
           </div>
           <button
@@ -97,7 +97,7 @@ export default function Applications() {
             className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur transition hover:bg-white/20"
             onClick={handleAddNew}
           >
-            + Add Application
+            + 지원 추가
           </button>
         </div>
       </section>
@@ -110,7 +110,7 @@ export default function Applications() {
                 className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
                 htmlFor="status-filter"
               >
-                Status Filter
+                상태 필터
               </label>
               <select
                 id="status-filter"
@@ -119,11 +119,11 @@ export default function Applications() {
                 value={statusFilter}
                 onChange={handleStatusFilterChange}
               >
-                <option value="all">All status</option>
-                <option value="writing">Writing</option>
-                <option value="submitted">Submitted</option>
-                <option value="passed">Passed</option>
-                <option value="failed">Failed</option>
+                <option value="all">전체 상태</option>
+                <option value="writing">작성 중</option>
+                <option value="submitted">지원 완료</option>
+                <option value="passed">합격</option>
+                <option value="failed">불합격</option>
               </select>
             </div>
             <button
@@ -135,12 +135,12 @@ export default function Applications() {
               onClick={handleClearFilters}
               disabled={!hasActiveFilters}
             >
-              Clear Filters
+              필터 초기화
             </button>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600">
-            Showing{" "}
+            표시{" "}
             <span className="text-slate-900" data-testid="applications-count">
               {filteredApplications.length} / {applications.length}
             </span>
@@ -150,21 +150,21 @@ export default function Applications() {
 
       {applications.length === 0 ? (
         <section className={ui.card}>
-          <h3 className={ui.cardTitle}>Start your application board</h3>
+          <h3 className={ui.cardTitle}>지원 현황 보드를 시작해보세요</h3>
           <p className="mt-2 text-sm text-slate-500">
-            Add your first company and track progress through each stage.
+            첫 지원 회사를 등록하면 상태별로 진행 현황을 추적할 수 있습니다.
           </p>
           <button type="button" className={`${ui.btnPrimary} mt-4`} onClick={handleAddNew}>
-            + Create First Application
+            + 첫 지원 추가
           </button>
         </section>
       ) : null}
 
       {applications.length > 0 && filteredApplications.length === 0 ? (
         <section className={ui.card}>
-          <h3 className={ui.cardTitle}>No matching result</h3>
+          <h3 className={ui.cardTitle}>조건에 맞는 결과가 없습니다</h3>
           <p className="mt-2 text-sm text-slate-500">
-            Try another status filter or clear filters to see all applications.
+            다른 상태를 선택하거나 필터를 초기화해 전체 항목을 확인하세요.
           </p>
         </section>
       ) : null}

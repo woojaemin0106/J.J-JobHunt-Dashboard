@@ -10,12 +10,12 @@ import {
 } from "../pages/applicationsSearchParams";
 
 function titleFromPath(pathname: string) {
-  if (pathname === "/") return "Dashboard";
-  if (pathname.startsWith("/applications")) return "Applications";
-  if (pathname.startsWith("/resume")) return "Resume";
-  if (pathname.startsWith("/notes")) return "Notes";
-  if (pathname.startsWith("/statistics")) return "Statistics";
-  return "J.J JobHunt";
+  if (pathname === "/") return "대시보드";
+  if (pathname.startsWith("/applications")) return "지원 현황";
+  if (pathname.startsWith("/resume")) return "이력서";
+  if (pathname.startsWith("/notes")) return "메모";
+  if (pathname.startsWith("/statistics")) return "통계";
+  return "JJ 취업준비 대시보드";
 }
 
 export default function Header() {
@@ -51,7 +51,7 @@ export default function Header() {
         <input
           key={searchInputKey}
           className={ui.input}
-          placeholder="Search company or role and press Enter"
+          placeholder="회사명/직무 검색 후 Enter"
           defaultValue={currentQuery}
           onKeyDown={(e) => {
             if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
@@ -75,9 +75,9 @@ export default function Header() {
         <button
           className={`${ui.btnSecondary} px-3 py-2 text-xs sm:text-sm`}
           onClick={() => navigate("/applications")}
-          title="Go to applications"
+          title="지원 현황으로 이동"
         >
-          Applications
+          지원 현황
         </button>
         {isAuthenticated ? (
           <div className="flex items-center gap-2">
@@ -87,18 +87,18 @@ export default function Header() {
             <button
               className={`${ui.btnSecondary} px-3 py-2 text-xs sm:text-sm`}
               onClick={logout}
-              title="Logout"
+              title="로그아웃"
             >
-              Logout
+              로그아웃
             </button>
           </div>
         ) : (
           <button
             className={`${ui.btnPrimary} px-3 py-2 text-xs sm:text-sm`}
             onClick={() => navigate("/login")}
-            title="Login"
+            title="로그인"
           >
-            Login
+            로그인
           </button>
         )}
       </div>

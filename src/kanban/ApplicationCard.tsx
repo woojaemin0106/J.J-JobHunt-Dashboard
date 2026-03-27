@@ -39,8 +39,8 @@ const ApplicationCard = memo(function ApplicationCard({
       </div>
 
       <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-        <span>Versions {application.versions.length}</span>
-        <span>{application.deadline || "No deadline"}</span>
+        <span>버전 {application.versions.length}</span>
+        <span>{application.deadline || "마감일 없음"}</span>
       </div>
     </button>
   );

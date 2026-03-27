@@ -8,10 +8,10 @@ import { getDaysUntil } from "../utils/date";
 import { ui } from "../utils/ui";
 
 function statusLabel(status: Application["status"]) {
-  if (status === "writing") return "Writing";
-  if (status === "submitted") return "Submitted";
-  if (status === "passed") return "Passed";
-  return "Failed";
+  if (status === "writing") return "작성 중";
+  if (status === "submitted") return "지원 완료";
+  if (status === "passed") return "합격";
+  return "불합격";
 }
 
 function statusTone(status: Application["status"]) {
@@ -46,7 +46,7 @@ const TodoItem = memo(function TodoItem({
         onClick={() => onRemove(todo.id)}
         className="text-xs font-semibold text-slate-400 transition group-hover:text-rose-600"
       >
-        Remove
+        삭제
       </button>
     </div>
   );
@@ -74,8 +74,8 @@ const RecentActivityCard = memo(function RecentActivityCard({
         </span>
       </div>
       <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-        <span>Versions {application.versions.length}</span>
-        <span>{dday === null ? "No deadline" : `D-${Math.max(0, dday)}`}</span>
+        <span>버전 {application.versions.length}</span>
+        <span>{dday === null ? "마감일 없음" : `D-${Math.max(0, dday)}`}</span>
       </div>
     </div>
   );
@@ -137,10 +137,10 @@ export default function Home() {
               Weekly command center
             </div>
             <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
-              Keep your job hunt in momentum.
+              이번 주 취업 준비 흐름을 한 번에 정리하세요.
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-sky-100/90">
-              Review deadlines, update statuses, and keep follow-up actions visible.
+              마감일, 상태 전환, 후속 액션을 한 화면에서 관리할 수 있습니다.
             </p>
           </div>
           <button
@@ -148,29 +148,29 @@ export default function Home() {
             className="inline-flex items-center justify-center rounded-xl border border-white/25 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur transition hover:bg-white/20"
             onClick={() => navigate("/applications")}
           >
-            Open Applications Board
+            지원 보드 열기
           </button>
         </div>
       </section>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className={ui.card}>
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Writing</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">작성 중</div>
           <div className="mt-2 text-3xl font-black text-slate-900">{stats.writing}</div>
         </div>
         <div className={ui.card}>
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Submitted
+            지원 완료
           </div>
           <div className="mt-2 text-3xl font-black text-slate-900">{stats.submitted}</div>
         </div>
         <div className={ui.card}>
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Passed</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">합격</div>
           <div className="mt-2 text-3xl font-black text-slate-900">{stats.passed}</div>
         </div>
         <div className={ui.card}>
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Due this week
+            이번 주 마감
           </div>
           <div className="mt-2 text-3xl font-black text-slate-900">{stats.dueThisWeek}</div>
         </div>
@@ -181,20 +181,20 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div>
               <div className={ui.cardTitle}>Upcoming Deadlines</div>
-              <div className={ui.muted}>Prioritize tasks with the nearest due dates.</div>
+              <div className={ui.muted}>마감이 임박한 지원을 먼저 처리하세요.</div>
             </div>
             <button
               type="button"
               className={`${ui.btnSecondary} px-3 py-2 text-xs`}
               onClick={() => navigate("/applications")}
             >
-              Manage
+              관리하기
             </button>
           </div>
           <div className="mt-4 space-y-2">
             {upcoming.length === 0 ? (
               <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">
-                No deadline items yet.
+                마감일이 설정된 항목이 아직 없습니다.
               </div>
             ) : (
               upcoming.map((app) => (
@@ -222,17 +222,17 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div>
               <div className={ui.cardTitle}>Today Focus</div>
-              <div className={ui.muted}>Capture and complete your next actions.</div>
+              <div className={ui.muted}>오늘 끝낼 핵심 액션을 기록하고 완료하세요.</div>
             </div>
             <div className="text-xs font-semibold text-slate-500">
-              Done {completedTodosCount}
+              완료 {completedTodosCount}
             </div>
           </div>
           <div className="mt-4 flex gap-2">
             <input
               type="text"
               className={ui.input}
-              placeholder="Type a focus item and press Enter"
+              placeholder="할 일을 입력하고 Enter"
               value={newTodoText}
               onChange={(event) => setNewTodoText(event.target.value)}
               onKeyDown={(event) => {
@@ -240,13 +240,13 @@ export default function Home() {
               }}
             />
             <button type="button" className={`${ui.btnPrimary} px-4`} onClick={handleAddTodo}>
-              Add
+              추가
             </button>
           </div>
           <div className="mt-4 space-y-2">
             {activeTodos.length === 0 ? (
               <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">
-                No active todos. Add your first action.
+                진행 중인 할 일이 없습니다. 첫 할 일을 추가해보세요.
               </div>
             ) : (
               activeTodos.slice(0, 6).map((todo) => (
@@ -266,20 +266,20 @@ export default function Home() {
         <div className="flex items-center justify-between">
           <div>
             <div className={ui.cardTitle}>Recent Activity</div>
-            <div className={ui.muted}>Latest updated applications at a glance.</div>
+            <div className={ui.muted}>최근 업데이트된 지원 항목을 확인하세요.</div>
           </div>
           <button
             type="button"
             className={`${ui.btnSecondary} px-3 py-2 text-xs`}
             onClick={() => navigate("/applications")}
           >
-            View all
+            전체 보기
           </button>
         </div>
         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {recent.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">
-              No activity yet.
+              아직 최근 활동이 없습니다.
             </div>
           ) : (
             recent.map((application) => (

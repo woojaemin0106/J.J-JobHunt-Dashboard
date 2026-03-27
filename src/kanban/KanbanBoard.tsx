@@ -5,10 +5,10 @@ import KanbanColumn from "./KanbanColumn";
 type Status = Application["status"];
 
 const COLUMNS: { key: Status; title: string; tone: string }[] = [
-  { key: "writing", title: "Writing", tone: "bg-sky-100 text-sky-700" },
-  { key: "submitted", title: "Submitted", tone: "bg-amber-100 text-amber-700" },
-  { key: "passed", title: "Passed", tone: "bg-emerald-100 text-emerald-700" },
-  { key: "failed", title: "Failed", tone: "bg-rose-100 text-rose-700" },
+  { key: "writing", title: "작성 중", tone: "bg-sky-100 text-sky-700" },
+  { key: "submitted", title: "지원 완료", tone: "bg-amber-100 text-amber-700" },
+  { key: "passed", title: "합격", tone: "bg-emerald-100 text-emerald-700" },
+  { key: "failed", title: "불합격", tone: "bg-rose-100 text-rose-700" },
 ];
 
 export default function KanbanBoard({
