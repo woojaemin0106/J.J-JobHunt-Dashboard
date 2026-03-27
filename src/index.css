@@ -1,1 +1,47 @@
 @import "tailwindcss";
+
+:root {
+  --jj-color-ink: #0b1220;
+  --jj-color-muted: #53627a;
+  --jj-color-line: #d5dee9;
+  --jj-color-surface: #ffffff;
+  --jj-color-brand: #0f4ed8;
+  --jj-color-brand-strong: #0b3cab;
+  --jj-radius-lg: 14px;
+  --jj-radius-xl: 20px;
+  --jj-shadow-soft: 0 12px 28px -20px rgba(15, 23, 42, 0.45);
+  --jj-shadow-card: 0 16px 40px -30px rgba(15, 23, 42, 0.45);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--jj-color-ink);
+  font-family:
+    "SUIT Variable",
+    "Pretendard Variable",
+    "Noto Sans KR",
+    "Inter",
+    sans-serif;
+  letter-spacing: -0.01em;
+  text-rendering: optimizeLegibility;
+  background:
+    radial-gradient(1200px 580px at 0% -15%, rgba(14, 165, 233, 0.2), transparent 70%),
+    radial-gradient(1000px 520px at 100% -20%, rgba(16, 185, 129, 0.16), transparent 70%),
+    linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+}
+
+::selection {
+  background: rgba(15, 78, 216, 0.2);
+}
