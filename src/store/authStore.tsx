@@ -9,6 +9,7 @@ import {
   supabaseConfigError,
 } from "../supabase/supabase";
 import type { User } from "../types/auth";
+import { storage } from "../utils/storage";
 import {
   applyLoadingEnd,
   applySetUser,
@@ -35,9 +36,16 @@ type Actions = {
   login: (email: string, password: string) => Promise<boolean>;
   signup: (email: string, password: string, name?: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  continueAsGuest: () => void;
 };
 
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 6000;
+const GUEST_SESSION_STORAGE_KEY = "jj.jobhunt.auth.guest-session.v1";
+const GUEST_USER: User = {
+  id: "guest",
+  email: "guest@jj-jobhunt.local",
+  name: "Interview Guest",
+};
 
 function toErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -60,6 +68,18 @@ function getAuthServiceUnavailableReason(): string {
   return supabaseConfigError ?? "Supabase 인증 서비스에 연결할 수 없습니다.";
 }
 
+function hasGuestSession(): boolean {
+  return storage.get<boolean>(GUEST_SESSION_STORAGE_KEY) === true;
+}
+
+function persistGuestSession(): void {
+  storage.set(GUEST_SESSION_STORAGE_KEY, true);
+}
+
+function clearGuestSession(): void {
+  storage.remove(GUEST_SESSION_STORAGE_KEY);
+}
+
 const StateCtx = createContext<AuthContextState | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
@@ -74,6 +94,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!isMounted) return;
       dispatch({ type: "LOADING_END" });
     };
+
+    if (hasGuestSession()) {
+      dispatch({ type: "SET_USER", payload: GUEST_USER });
+      return () => {
+        isMounted = false;
+      };
+    }
 
     if (!supabase) {
       console.error("[auth] bootstrap skipped:", getAuthServiceUnavailableReason());
@@ -113,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error("[auth] initial session check failed:", error.message);
           finishLoading();
         } else if (session?.user) {
+          clearGuestSession();
           dispatch({ type: "SET_USER", payload: mapSupabaseUserToUser(session.user) });
         } else {
           finishLoading();
@@ -129,11 +157,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!isMounted) return;
 
           if (session?.user) {
+            clearGuestSession();
             dispatch({
               type: "SET_USER",
               payload: mapSupabaseUserToUser(session.user),
             });
           } else {
+            clearGuestSession();
             dispatch({ type: "SET_USER", payload: null });
           }
         }
@@ -168,6 +198,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error("[auth] login failed:", error.message);
           return false;
         }
+        if (data.user) {
+          clearGuestSession();
+        }
         return !!data.user;
       } catch (error) {
         console.error("[auth] login failed:", toErrorMessage(error));
@@ -197,6 +230,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error("[auth] signup failed:", error.message);
           return false;
         }
+        if (data.user) {
+          clearGuestSession();
+        }
         return !!data.user;
       } catch (error) {
         console.error("[auth] signup failed:", toErrorMessage(error));
@@ -205,6 +241,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
 
     async logout() {
+      if (hasGuestSession() || state.user?.id === GUEST_USER.id) {
+        clearGuestSession();
+        dispatch({ type: "SET_USER", payload: null });
+        return;
+      }
+
       if (!supabase) {
         console.error("[auth] logout skipped:", getAuthServiceUnavailableReason());
         return;
@@ -215,6 +257,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error("[auth] logout failed:", error.message);
       }
+    },
+
+    continueAsGuest() {
+      persistGuestSession();
+      dispatch({ type: "SET_USER", payload: GUEST_USER });
     },
   };
 

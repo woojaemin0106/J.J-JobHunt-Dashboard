@@ -8,7 +8,7 @@ import { ui } from "../utils/ui";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuthActions();
+  const { login, continueAsGuest } = useAuthActions();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -73,6 +73,12 @@ export default function Login() {
       demoAuthConfig.password,
       ERROR_MESSAGES.auth.demoLoginFailed
     );
+  };
+
+  const handleGuestLogin = () => {
+    setError("");
+    continueAsGuest();
+    navigate("/");
   };
 
   return (
@@ -178,6 +184,24 @@ export default function Login() {
               {isLoading ? "로그인 중..." : "로그인"}
             </button>
           </form>
+
+          <div
+            className="mt-4 space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4"
+            data-testid="guest-login-notice"
+          >
+            <p className="text-sm text-emerald-700">
+              계정 없이도 면접용 화면을 바로 체험할 수 있습니다.
+            </p>
+            <button
+              type="button"
+              data-testid="guest-login-button"
+              disabled={isLoading}
+              onClick={handleGuestLogin}
+              className={`${ui.btnSecondary} w-full justify-center disabled:cursor-not-allowed disabled:opacity-60`}
+            >
+              게스트로 바로 입장
+            </button>
+          </div>
 
           {isDemoLoginVisible ? (
             <div

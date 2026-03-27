@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./authStore";
 
 const getSessionMock = vi.fn();
 const onAuthStateChangeMock = vi.fn();
+const GUEST_SESSION_STORAGE_KEY = "jj.jobhunt.auth.guest-session.v1";
 let isSupabaseAvailable = true;
 
 vi.mock("../supabase/supabase", () => ({
@@ -36,6 +37,7 @@ function AuthProbe() {
 describe("AuthProvider bootstrap integration", () => {
   beforeEach(() => {
     isSupabaseAvailable = true;
+    localStorage.clear();
     getSessionMock.mockReset();
     onAuthStateChangeMock.mockReset();
     onAuthStateChangeMock.mockReturnValue({
@@ -63,6 +65,21 @@ describe("AuthProvider bootstrap integration", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("auth-bootstrap-state")).toHaveTextContent("ready:false");
+    });
+  });
+
+  it("hydrates guest mode immediately when guest session exists", async () => {
+    localStorage.setItem(GUEST_SESSION_STORAGE_KEY, "true");
+    isSupabaseAvailable = false;
+
+    render(
+      <AuthProvider>
+        <AuthProbe />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("auth-bootstrap-state")).toHaveTextContent("ready:true");
     });
   });
 
