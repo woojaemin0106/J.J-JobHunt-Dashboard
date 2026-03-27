@@ -126,3 +126,7 @@ npm run test:e2e:smoke
 ---
 
 문의나 리뷰 포인트는 이슈/PR 코멘트로 남겨주세요.
+
+## 11) AI Review Workflow
+
+- [AI Review Workflow Guide](docs/04_AI_REVIEW_WORKFLOW.md)

@@ -5,14 +5,24 @@ const DIFF_PATH = process.env.PR_DIFF_PATH || "pr.diff";
 const MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
 const API_KEY = process.env.OPENAI_API_KEY;
 const MAX_DIFF_CHARS = 20_000;
+const PROMPT_DIR = ".github/ai-prompts";
+const PROMPT_FILES = {
+  reviewer: `${PROMPT_DIR}/reviewer.md`,
+  tests: `${PROMPT_DIR}/test-suggestions.md`,
+  ui: `${PROMPT_DIR}/ui-consistency.md`,
+};
 
 function formatSkippedReport(reason) {
   return `## AI Review Report (Skipped)
 
 - Status: skipped
 - Reason: ${reason}
-- Quality gates (`lint`, `unit/integration`, `build`, `e2e-smoke`) remain required.
+- Quality gates (\`lint\`, \`unit/integration\`, \`build\`, \`e2e-smoke\`) remain required.
 `;
+}
+
+async function writeSkippedReport(reason) {
+  await fs.writeFile(OUTPUT_PATH, formatSkippedReport(reason), "utf8");
 }
 
 function extractOutputText(responseJson) {
@@ -35,53 +45,121 @@ function extractOutputText(responseJson) {
   return "";
 }
 
-async function main() {
-  let diffText = "";
-  try {
-    diffText = await fs.readFile(DIFF_PATH, "utf8");
-  } catch {
-    const report = formatSkippedReport(`diff file not found: ${DIFF_PATH}`);
-    await fs.writeFile(OUTPUT_PATH, report, "utf8");
-    return;
+function summarizeDiff(diffText) {
+  const fileSet = new Set();
+  for (const line of diffText.split("\n")) {
+    if (!line.startsWith("diff --git ")) continue;
+    const match = line.match(/^diff --git a\/(.+?) b\/(.+)$/);
+    if (!match) continue;
+    fileSet.add(match[2]);
   }
 
-  if (!diffText.trim()) {
-    const report = formatSkippedReport("empty diff");
-    await fs.writeFile(OUTPUT_PATH, report, "utf8");
-    return;
-  }
+  const files = [...fileSet];
+  return {
+    files,
+    preview: files.slice(0, 20).map((file) => `- ${file}`).join("\n"),
+  };
+}
 
-  if (!API_KEY) {
-    const report = formatSkippedReport("OPENAI_API_KEY is missing");
-    await fs.writeFile(OUTPUT_PATH, report, "utf8");
-    return;
-  }
+async function readPrompt(path) {
+  const text = await fs.readFile(path, "utf8");
+  return text.trim();
+}
 
-  const [reviewPrompt, testPrompt, uiPrompt] = await Promise.all([
-    fs.readFile(".github/ai-prompts/reviewer.md", "utf8"),
-    fs.readFile(".github/ai-prompts/test-suggestions.md", "utf8"),
-    fs.readFile(".github/ai-prompts/ui-consistency.md", "utf8"),
-  ]);
-
-  const trimmedDiff =
-    diffText.length > MAX_DIFF_CHARS
-      ? `${diffText.slice(0, MAX_DIFF_CHARS)}\n\n[diff truncated to ${MAX_DIFF_CHARS} chars]`
-      : diffText;
-
-  const input = `You are reviewing a pull request for a portfolio-grade jobhunt dashboard.
+function buildPromptInput({ prompts, trimmedDiff, fileSummary }) {
+  return `You are a senior code reviewer for a portfolio-grade web app pull request.
 Return markdown only.
 
-${reviewPrompt}
+Output requirements:
+- Keep total output concise and practical (target <= 450 words).
+- Use these exact section headers in order:
+  1) ## Change Summary
+  2) ## Top Risks
+  3) ## Missing Tests
+  4) ## UI Consistency Checklist
+  5) ## Suggested Next Actions
+- In "Top Risks", include severity labels: High/Medium/Low.
+- If there are no concrete findings, say "No critical findings".
+- Avoid speculation not grounded in the diff.
 
-${testPrompt}
+Prompt pack (versioned in repository):
 
-${uiPrompt}
+[Reviewer Prompt]
+${prompts.reviewer}
+
+[Test Suggestions Prompt]
+${prompts.tests}
+
+[UI Consistency Prompt]
+${prompts.ui}
+
+Changed files (${fileSummary.files.length}):
+${fileSummary.preview || "- none"}
 
 Diff:
 \`\`\`diff
 ${trimmedDiff}
 \`\`\`
 `;
+}
+
+function formatSuccessReport({ outputText, fileSummary }) {
+  return `## AI Review Report
+
+- Status: completed
+- Model: \`${MODEL}\`
+- Diff source: \`${DIFF_PATH}\`
+- Files in diff: ${fileSummary.files.length}
+
+${outputText}
+`;
+}
+
+async function main() {
+  let diffText = "";
+
+  try {
+    diffText = await fs.readFile(DIFF_PATH, "utf8");
+  } catch {
+    await writeSkippedReport(`diff file not found: ${DIFF_PATH}`);
+    return;
+  }
+
+  if (!diffText.trim()) {
+    await writeSkippedReport("empty diff");
+    return;
+  }
+
+  if (!API_KEY) {
+    await writeSkippedReport("OPENAI_API_KEY is missing");
+    return;
+  }
+
+  let prompts;
+  try {
+    const [reviewer, tests, ui] = await Promise.all([
+      readPrompt(PROMPT_FILES.reviewer),
+      readPrompt(PROMPT_FILES.tests),
+      readPrompt(PROMPT_FILES.ui),
+    ]);
+    prompts = { reviewer, tests, ui };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await writeSkippedReport(`failed to load prompt files: ${message}`);
+    return;
+  }
+
+  const fileSummary = summarizeDiff(diffText);
+  const trimmedDiff =
+    diffText.length > MAX_DIFF_CHARS
+      ? `${diffText.slice(0, MAX_DIFF_CHARS)}\n\n[diff truncated to ${MAX_DIFF_CHARS} chars]`
+      : diffText;
+
+  const input = buildPromptInput({
+    prompts,
+    trimmedDiff,
+    fileSummary,
+  });
 
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
@@ -98,30 +176,25 @@ ${trimmedDiff}
 
     if (!response.ok) {
       const details = await response.text();
-      const report = formatSkippedReport(`OpenAI API ${response.status}: ${details.slice(0, 300)}`);
-      await fs.writeFile(OUTPUT_PATH, report, "utf8");
+      await writeSkippedReport(`OpenAI API ${response.status}: ${details.slice(0, 300)}`);
       return;
     }
 
     const payload = await response.json();
     const outputText = extractOutputText(payload);
-
     if (!outputText) {
-      const report = formatSkippedReport("empty model output");
-      await fs.writeFile(OUTPUT_PATH, report, "utf8");
+      await writeSkippedReport("empty model output");
       return;
     }
 
-    const fullReport = `## AI Review Report
-
-${outputText}
-`;
-
-    await fs.writeFile(OUTPUT_PATH, fullReport, "utf8");
+    await fs.writeFile(
+      OUTPUT_PATH,
+      formatSuccessReport({ outputText, fileSummary }),
+      "utf8"
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    const report = formatSkippedReport(`request failed: ${message}`);
-    await fs.writeFile(OUTPUT_PATH, report, "utf8");
+    await writeSkippedReport(`request failed: ${message}`);
   }
 }
 
