@@ -89,6 +89,19 @@ describe("Auth forms integration", () => {
     expect(await screen.findByTestId("home-route")).toBeInTheDocument();
   });
 
+  it("toggles login password visibility", () => {
+    renderLoginRoute();
+
+    const passwordInput = screen.getByTestId("login-password-input");
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    fireEvent.click(screen.getByTestId("login-toggle-password"));
+    expect(passwordInput).toHaveAttribute("type", "text");
+
+    fireEvent.click(screen.getByTestId("login-toggle-password"));
+    expect(passwordInput).toHaveAttribute("type", "password");
+  });
+
   it("shows service unavailable guidance when supabase is not configured", () => {
     mockSupabaseConfigured = false;
     renderLoginRoute();
@@ -121,6 +134,19 @@ describe("Auth forms integration", () => {
     });
 
     expect(await screen.findByTestId("home-route")).toBeInTheDocument();
+  });
+
+  it("toggles signup password visibility", () => {
+    renderSignupRoute();
+
+    const passwordInput = screen.getByTestId("signup-password-input");
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    fireEvent.click(screen.getByTestId("signup-toggle-password"));
+    expect(passwordInput).toHaveAttribute("type", "text");
+
+    fireEvent.click(screen.getByTestId("signup-toggle-password"));
+    expect(passwordInput).toHaveAttribute("type", "password");
   });
 
   it("shows recovery message when signup fails", async () => {
