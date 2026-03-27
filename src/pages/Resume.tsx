@@ -5,6 +5,7 @@ import { useApplications, useApplicationActions } from "../store/applicationStor
 import type { Application, ResumeVersion } from "../types/application";
 import { generateId } from "../utils/id";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { EmptyStateCard } from "../components/StateCards";
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString("ko-KR", {
@@ -223,19 +224,13 @@ export default function Resume() {
       </section>
 
       {applications.length === 0 ? (
-        <section className={ui.card}>
-          <h3 className={ui.cardTitle}>아직 등록된 지원서가 없습니다</h3>
-          <p className="mt-2 text-sm text-slate-500">
-            먼저 지원 현황 페이지에서 공고를 추가한 뒤 이력서 버전을 연결해 주세요.
-          </p>
-          <button
-            type="button"
-            className={`${ui.btnPrimary} mt-4`}
-            onClick={() => navigate("/applications")}
-          >
-            지원 현황으로 이동
-          </button>
-        </section>
+        <EmptyStateCard
+          testId="resume-no-applications-state"
+          title="아직 등록된 지원서가 없습니다"
+          description="먼저 지원 현황 페이지에서 공고를 추가한 뒤 이력서 버전을 연결해 주세요."
+          actionLabel="지원 현황으로 이동"
+          onAction={() => navigate("/applications")}
+        />
       ) : (
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
           <aside className={`${ui.card} xl:col-span-4`}>
@@ -324,11 +319,13 @@ export default function Resume() {
 
                 <div className="space-y-3">
                   {sortedVersions.length === 0 ? (
-                    <div className={ui.card}>
-                      <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">
-                        이 공고에 연결된 이력서 버전이 아직 없습니다.
-                      </div>
-                    </div>
+                    <EmptyStateCard
+                      testId="resume-empty-version-state"
+                      title="이 공고에 연결된 이력서 버전이 아직 없습니다"
+                      description="핵심 성과 중심으로 첫 버전을 작성하면 지원서별 맞춤 이력서 관리가 시작됩니다."
+                      actionLabel="+ 첫 버전 추가"
+                      onAction={() => setIsCreateOpen(true)}
+                    />
                   ) : (
                     sortedVersions.map((version) => (
                       <ResumeVersionCard
