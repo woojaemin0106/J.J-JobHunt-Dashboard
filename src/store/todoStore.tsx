@@ -15,55 +15,12 @@ import {
   buildScopedStorageKey,
   migrateLegacyToScoped,
 } from "../utils/scopedStorage";
+import { todoReducer, type TodoStoreState } from "./todoStatePolicy";
 
 const STORAGE_RESOURCE = "todos";
 const LEGACY_STORAGE_KEY = "jj_jobhunt_todos_v1";
 const STORAGE_VERSION = 2;
 const LEGACY_VERSION = 1;
-
-type State = { todos: Todo[] };
-
-type Action =
-  | { type: "INIT"; payload: Todo[] }
-  | { type: "ADD"; payload: Todo }
-  | { type: "UPDATE"; payload: { id: string; patch: Partial<Todo> } }
-  | { type: "REMOVE"; payload: { id: string } }
-  | { type: "TOGGLE"; payload: { id: string } };
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case "INIT":
-      return { todos: action.payload };
-    case "ADD":
-      return { todos: [action.payload, ...state.todos] };
-    case "UPDATE":
-      return {
-        todos: state.todos.map((t) =>
-          t.id === action.payload.id ? { ...t, ...action.payload.patch } : t
-        ),
-      };
-    case "REMOVE":
-      return {
-        todos: state.todos.filter((t) => t.id !== action.payload.id),
-      };
-    case "TOGGLE":
-      return {
-        todos: state.todos.map((t) =>
-          t.id === action.payload.id
-            ? {
-                ...t,
-                completed: !t.completed,
-                completedAt: !t.completed
-                  ? new Date().toISOString()
-                  : undefined,
-              }
-            : t
-        ),
-      };
-    default:
-      return state;
-  }
-}
 
 type Actions = {
   addTodo: (text: string) => void;
@@ -72,7 +29,7 @@ type Actions = {
   toggleTodo: (id: string) => void;
 };
 
-const StateCtx = createContext<State | null>(null);
+const StateCtx = createContext<TodoStoreState | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
 function loadTodos(scopeId: string): Todo[] {
@@ -108,7 +65,7 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
   );
 
   const [state, dispatch] = useReducer(
-    reducer,
+    todoReducer,
     { todos: [] },
     () => ({ todos: loadTodos(scopeId) })
   );

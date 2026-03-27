@@ -16,6 +16,10 @@ import {
   buildScopedStorageKey,
   migrateLegacyToScoped,
 } from "../utils/scopedStorage";
+import {
+  applicationReducer,
+  type ApplicationStoreState,
+} from "./applicationStatePolicy";
 
 type Status = Application["status"];
 
@@ -24,46 +28,6 @@ const LEGACY_STORAGE_KEY = "jj_jobhunt_applications_v1";
 const STORAGE_VERSION = 2;
 const LEGACY_VERSION = 1;
 
-type State = { applications: Application[] };
-
-type Action =
-  | { type: "INIT"; payload: Application[] }
-  | { type: "ADD"; payload: Application }
-  | { type: "UPDATE"; payload: { id: string; patch: Partial<Application> } }
-  | { type: "REMOVE"; payload: { id: string } }
-  | { type: "CHANGE_STATUS"; payload: { id: string; status: Status } };
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case "INIT":
-      return { applications: action.payload };
-    case "ADD":
-      return { applications: [action.payload, ...state.applications] };
-    case "UPDATE":
-      return {
-        applications: state.applications.map((a) =>
-          a.id === action.payload.id ? { ...a, ...action.payload.patch } : a
-        ),
-      };
-    case "REMOVE":
-      return {
-        applications: state.applications.filter(
-          (a) => a.id !== action.payload.id
-        ),
-      };
-    case "CHANGE_STATUS":
-      return {
-        applications: state.applications.map((a) =>
-          a.id === action.payload.id
-            ? { ...a, status: action.payload.status }
-            : a
-        ),
-      };
-    default:
-      return state;
-  }
-}
-
 type Actions = {
   addApplication: (input: Omit<Application, "id">) => void;
   updateApplication: (id: string, patch: Partial<Application>) => void;
@@ -71,7 +35,7 @@ type Actions = {
   changeStatus: (id: string, status: Status) => void;
 };
 
-const StateCtx = createContext<State | null>(null);
+const StateCtx = createContext<ApplicationStoreState | null>(null);
 const ActionsCtx = createContext<Actions | null>(null);
 
 function loadApplications(scopeId: string): Application[] {
@@ -112,7 +76,7 @@ export function ApplicationProvider({
   );
 
   const [state, dispatch] = useReducer(
-    reducer,
+    applicationReducer,
     { applications: [] },
     () => ({ applications: loadApplications(scopeId) })
   );
