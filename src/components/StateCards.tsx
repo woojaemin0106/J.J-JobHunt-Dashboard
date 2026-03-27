@@ -27,7 +27,7 @@ export function StatusBanner({
       role={tone === "error" ? "alert" : "status"}
       aria-live={tone === "error" ? "polite" : "off"}
       data-testid={testId}
-      className={`rounded-xl border p-3 text-sm ${bannerToneClass(tone)}`}
+      className={`rounded-xl border p-3 text-sm transition-colors duration-200 ${bannerToneClass(tone)}`}
     >
       {children}
     </div>
@@ -49,7 +49,7 @@ export function EmptyStateCard({
 }) {
   return (
     <section className={ui.card} data-testid={testId}>
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-6 text-center">
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-6 text-center transition-colors duration-200">
         <h3 className="text-base font-bold text-slate-900">{title}</h3>
         <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-500">{description}</p>
         {actionLabel && onAction ? (
