@@ -16,16 +16,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
 
   const isDemoLoginVisible = isSupabaseConfigured && demoAuthConfig.isVisible;
-  const demoSetupHintMessage =
-    !isSupabaseConfigured || isDemoLoginVisible
-      ? null
-      : !demoAuthConfig.enabled
-      ? "데모 로그인을 사용하려면 VITE_DEMO_ENABLED=true를 설정하세요."
-      : !demoAuthConfig.email
-      ? "VITE_DEMO_EMAIL을 설정하면 데모 로그인 버튼이 표시됩니다."
-      : !demoAuthConfig.password
-      ? "VITE_DEMO_PASSWORD를 설정하면 데모 로그인 버튼이 표시됩니다."
-      : "데모 로그인 설정을 확인하세요.";
 
   const attemptLogin = async (
     nextEmail: string,
@@ -220,15 +210,6 @@ export default function Login() {
               >
                 데모로 바로 보기
               </button>
-            </div>
-          ) : null}
-
-          {demoSetupHintMessage ? (
-            <div
-              className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-700"
-              data-testid="demo-login-setup-hint"
-            >
-              {demoSetupHintMessage}
             </div>
           ) : null}
 
