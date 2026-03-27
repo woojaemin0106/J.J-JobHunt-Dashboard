@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/supabase/supabaseConfig.test.ts",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1774585556003,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1774585556003,
+            "name": "Commit-0",
+            "content": "import { describe, expect, it } from \"vitest\";\nimport {\n  normalizeSupabaseUrl,\n  validateSupabaseConfig,\n} from \"./supabaseConfig\";\n\ndescribe(\"supabaseConfig\", () => {\n  it(\"값이 누락되었을 때 에러를 반환해야 함\", () => {\n    expect(validateSupabaseConfig(undefined, undefined)).not.toBeNull();\n    expect(validateSupabaseConfig(\"\", \"some-key\")).not.toBeNull();\n    expect(validateSupabaseConfig(\"https://project.supabase.co\", \"\")).not.toBeNull();\n  });\n\n  it(\"플레이스홀더(기본값)를 그대로 사용하면 에러를 반환해야 함\", () => {\n    // 실제 .env에 적힌 예시 값들이 들어오면 거부해야 합니다.\n    expect(\n      validateSupabaseConfig(\"https://your-project.supabase.co\", \"your-anon-key\")\n    ).not.toBeNull();\n  });\n\n  it(\"잘못된 형식이나 보안에 취약한(http) URL은 에러를 반환해야 함\", () => {\n    expect(validateSupabaseConfig(\"not-a-url\", \"eyJhbGci...\")).not.toBeNull();\n    expect(validateSupabaseConfig(\"http://project.supabase.co\", \"eyJhbGci...\")).not.toBeNull();\n  });\n\n  it(\"올바른 설정(실제 JWT 형식의 키)을 수용해야 함\", () => {\n    expect(\n      validateSupabaseConfig(\n        \"https://seqwntckorouwjjimquq.supabase.co\",\n        \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSJ9.signature\" // 실제 JWT 형식\n      )\n    ).toBeNull(); // 에러가 없어야(null) 통과\n  });\n\n  it(\"URL을 origin 형태로 정규화해야 함\", () => {\n    expect(\n      normalizeSupabaseUrl(\"https://project-id.supabase.co/rest/v1\")\n    ).toBe(\"https://project-id.supabase.co\");\n  });\n});"
+        }
+    ]
+}

@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+:root {
+  --jj-color-ink: #0b1220;
+  --jj-color-ink-soft: #1f2b3d;
+  --jj-color-muted: #53627a;
+  --jj-color-muted-soft: #6f7f96;
+  --jj-color-line: #d5dee9;
+  --jj-color-surface: #ffffff;
+  --jj-color-brand: #0f4ed8;
+  --jj-color-brand-strong: #0b3cab;
+  --jj-color-brand-soft: #dce9ff;
+  --jj-color-focus-ring: rgba(15, 78, 216, 0.28);
+  --jj-color-success: #047857;
+  --jj-color-warning: #b45309;
+  --jj-color-danger: #b91c1c;
+  --jj-radius-md: 10px;
+  --jj-radius-lg: 14px;
+  --jj-radius-xl: 20px;
+  --jj-shadow-soft: 0 16px 36px -24px rgba(15, 23, 42, 0.44);
+  --jj-shadow-card: 0 24px 56px -36px rgba(15, 23, 42, 0.45);
+  --jj-shadow-floating: 0 22px 42px -28px rgba(15, 23, 42, 0.55);
+  --jj-ease-snappy: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--jj-color-ink);
+  font-family:
+    "SUIT Variable",
+    "Pretendard Variable",
+    "Noto Sans KR",
+    "Inter",
+    sans-serif;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(1200px 580px at 0% -15%, rgba(14, 165, 233, 0.2), transparent 70%),
+    radial-gradient(1000px 520px at 100% -20%, rgba(16, 185, 129, 0.16), transparent 70%),
+    linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(15, 78, 216, 0.2);
+}
+
+:where(button, a, input, select, textarea, [role="button"]):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--jj-color-focus-ring);
+}
+
+:where(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+}
+
+@keyframes jj-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.jj-page-enter {
+  animation: jj-fade-up 260ms var(--jj-ease-snappy) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .jj-page-enter {
+    animation: none;
+  }
+}
